@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BenLang Hilfe</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0e14;
+      color: #e0e6ed;
+      line-height: 1.6;
+    }
+    
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: #12171f;
+      padding: 20px;
+      border-right: 1px solid #2a3545;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    
+    .sidebar h1 {
+      color: #00d4ff;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    
+    .sidebar .back-link {
+      display: inline-block;
+      color: #6b7a8a;
+      text-decoration: none;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+    }
+    
+    .sidebar .back-link:hover {
+      color: #00d4ff;
+    }
+    
+    .sidebar nav {
+      margin-top: 20px;
+    }
+    
+    .sidebar nav a {
+      display: block;
+      padding: 10px 15px;
+      color: #e0e6ed;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-bottom: 5px;
+      font-size: 0.95rem;
+    }
+    
+    .sidebar nav a:hover {
+      background: #1a2130;
+      color: #00d4ff;
+    }
+    
+    .sidebar nav a.active {
+      background: #00d4ff;
+      color: #0a0e14;
+      font-weight: 600;
+    }
+    
+    /* Content */
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 40px 60px;
+      max-width: 900px;
+    }
+    
+    .content h1 {
+      color: #00d4ff;
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #2a3545;
+      padding-bottom: 10px;
+    }
+    
+    .content h2 {
+      color: #ff79c6;
+      font-size: 1.5rem;
+      margin-top: 40px;
+      margin-bottom: 15px;
+    }
+    
+    .content h3 {
+      color: #ffcc00;
+      font-size: 1.2rem;
+      margin-top: 30px;
+      margin-bottom: 10px;
+    }
+    
+    .content p {
+      margin-bottom: 15px;
+    }
+    
+    .content ul, .content ol {
+      margin: 15px 0;
+      padding-left: 25px;
+    }
+    
+    .content li {
+      margin-bottom: 8px;
+    }
+    
+    .content code {
+      background: #1a2130;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 0.9em;
+      color: #00d4ff;
+    }
+    
+    .content pre {
+      background: #12171f;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 20px 0;
+      border-left: 4px solid #00d4ff;
+    }
+    
+    .content pre code {
+      background: none;
+      padding: 0;
+      color: #e0e6ed;
+      display: block;
+      line-height: 1.5;
+    }
+    
+    .content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    
+    .content th, .content td {
+      padding: 12px 15px;
+      text-align: left;
+      border: 1px solid #2a3545;
+    }
+    
+    .content th {
+      background: #12171f;
+      color: #00d4ff;
+      font-weight: 600;
+    }
+    
+    .content tr:nth-child(even) {
+      background: rgba(18, 23, 31, 0.5);
+    }
+    
+    .content hr {
+      border: none;
+      border-top: 1px solid #2a3545;
+      margin: 30px 0;
+    }
+    
+    .content strong {
+      color: #ffcc00;
+    }
+    
+    .content a {
+      color: #00d4ff;
+      text-decoration: none;
+    }
+    
+    .content a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Navigation buttons */
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid #2a3545;
+    }
+    
+    .nav-buttons a {
+      padding: 10px 20px;
+      background: #12171f;
+      color: #00d4ff;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+    
+    .nav-buttons a:hover {
+      background: #1a2130;
+    }
+    
+    .nav-buttons .disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    
+    /* Mobile */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+      }
+      
+      .content {
+        margin-left: 0;
+        padding: 20px;
+      }
+      
+      .container {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h1>BenLang Hilfe</h1>
+      <a href="/" class="back-link">← Zurück zum Editor</a>
+      
+      <nav id="nav">
+        <!-- Wird dynamisch gefüllt -->
+      </nav>
+    </aside>
+    
+    <main class="content" id="content">
+      <h1>Willkommen zur BenLang Hilfe!</h1>
+      <p>Wähle ein Thema aus der linken Seite.</p>
+    </main>
+  </div>
+  
+  <script>
+    const chapters = [
+      { id: '01-erste-schritte', title: 'Erste Schritte' },
+      { id: '02-variablen', title: 'Variablen' },
+      { id: '03-zeichnen', title: 'Zeichnen' },
+      { id: '04-steuerung', title: 'Steuerung' },
+      { id: '05-schleifen', title: 'Schleifen' },
+      { id: '06-bedingungen', title: 'Bedingungen' },
+      { id: '07-figuren', title: 'Figuren & Bilder' },
+      { id: '08-spiel-erstellen', title: 'Spiel erstellen' },
+      { id: '09-befehlsreferenz', title: 'Befehlsreferenz' }
+    ];
+    
+    // Navigation erstellen
+    const nav = document.getElementById('nav');
+    chapters.forEach(ch => {
+      const link = document.createElement('a');
+      link.href = '#' + ch.id;
+      link.textContent = ch.title;
+      link.dataset.id = ch.id;
+      nav.appendChild(link);
+    });
+    
+    // Markdown zu HTML (einfache Version)
+    function parseMarkdown(md) {
+      let html = md
+        // Code-Blöcke zuerst (vor anderen Regeln)
+        .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>')
+        // Inline-Code
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        // Überschriften
+        .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+        // Fett und Kursiv
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        // Horizontale Linie
+        .replace(/^---$/gm, '<hr>')
+        // Links
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+        // Tabellen
+        .replace(/^\|(.+)\|$/gm, (match, content) => {
+          const cells = content.split('|').map(c => c.trim());
+          if (cells.every(c => /^[-:]+$/.test(c))) {
+            return '<!-- table separator -->';
+          }
+          const isHeader = !document.currentTableStarted;
+          document.currentTableStarted = true;
+          const tag = isHeader ? 'th' : 'td';
+          return '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
+        })
+        // Listen
+        .replace(/^\- (.*)$/gm, '<li>$1</li>')
+        .replace(/^\d+\. (.*)$/gm, '<li>$1</li>')
+        // Paragraphen
+        .replace(/\n\n/g, '</p><p>')
+        // Zeilenumbrüche in Paragraphen
+        .replace(/\n/g, ' ');
+      
+      // Listen-Wrapper hinzufügen
+      html = html.replace(/(<li>.*<\/li>)+/g, '<ul>$&</ul>');
+      
+      // Tabellen-Wrapper
+      html = html.replace(/(<tr>.*<\/tr>)+/g, match => {
+        return '<table>' + match.replace('<!-- table separator -->', '') + '</table>';
+      });
+      
+      // Reset für Tabellen
+      document.currentTableStarted = false;
+      
+      return '<p>' + html + '</p>';
+    }
+    
+    // Besserer Markdown-Parser
+    function renderMarkdown(md) {
+      const lines = md.split('\n');
+      let html = '';
+      let inCodeBlock = false;
+      let codeContent = '';
+      let inTable = false;
+      let tableRows = [];
+      let inList = false;
+      let listItems = [];
+      
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        
+        // Code-Block
+        if (line.startsWith('```')) {
+          if (inCodeBlock) {
+            html += '<pre><code>' + escapeHtml(codeContent.trim()) + '</code></pre>\n';
+            codeContent = '';
+            inCodeBlock = false;
+          } else {
+            inCodeBlock = true;
+          }
+          continue;
+        }
+        
+        if (inCodeBlock) {
+          codeContent += line + '\n';
+          continue;
+        }
+        
+        // Tabelle
+        if (line.startsWith('|') && line.endsWith('|')) {
+          if (!inTable) {
+            inTable = true;
+            tableRows = [];
+          }
+          // Separator überspringen
+          if (/^\|[\s\-:|]+\|$/.test(line)) continue;
+          tableRows.push(line);
+          continue;
+        } else if (inTable) {
+          html += renderTable(tableRows);
+          inTable = false;
+          tableRows = [];
+        }
+        
+        // Liste
+        if (/^[\-\*] /.test(line) || /^\d+\. /.test(line)) {
+          if (!inList) {
+            inList = true;
+            listItems = [];
+          }
+          listItems.push(line.replace(/^[\-\*] /, '').replace(/^\d+\. /, ''));
+          continue;
+        } else if (inList && line.trim() !== '') {
+          html += '<ul>' + listItems.map(li => '<li>' + inlineMarkdown(li) + '</li>').join('') + '</ul>\n';
+          inList = false;
+          listItems = [];
+        }
+        
+        // Leere Zeile beendet Liste
+        if (inList && line.trim() === '') {
+          html += '<ul>' + listItems.map(li => '<li>' + inlineMarkdown(li) + '</li>').join('') + '</ul>\n';
+          inList = false;
+          listItems = [];
+          continue;
+        }
+        
+        // Überschriften
+        if (line.startsWith('# ')) {
+          html += '<h1>' + inlineMarkdown(line.slice(2)) + '</h1>\n';
+        } else if (line.startsWith('## ')) {
+          html += '<h2>' + inlineMarkdown(line.slice(3)) + '</h2>\n';
+        } else if (line.startsWith('### ')) {
+          html += '<h3>' + inlineMarkdown(line.slice(4)) + '</h3>\n';
+        } else if (line === '---') {
+          html += '<hr>\n';
+        } else if (line.trim() !== '') {
+          html += '<p>' + inlineMarkdown(line) + '</p>\n';
+        }
+      }
+      
+      // Restliche Liste
+      if (inList) {
+        html += '<ul>' + listItems.map(li => '<li>' + inlineMarkdown(li) + '</li>').join('') + '</ul>\n';
+      }
+      
+      // Restliche Tabelle
+      if (inTable) {
+        html += renderTable(tableRows);
+      }
+      
+      return html;
+    }
+    
+    function renderTable(rows) {
+      if (rows.length === 0) return '';
+      let html = '<table>';
+      rows.forEach((row, i) => {
+        const cells = row.slice(1, -1).split('|').map(c => c.trim());
+        const tag = i === 0 ? 'th' : 'td';
+        html += '<tr>' + cells.map(c => `<${tag}>${inlineMarkdown(c)}</${tag}>`).join('') + '</tr>';
+      });
+      html += '</table>\n';
+      return html;
+    }
+    
+    function inlineMarkdown(text) {
+      return text
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+    }
+    
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+    
+    // Kapitel laden
+    async function loadChapter(id) {
+      try {
+        const res = await fetch('/api/hilfe?seite=' + id);
+        if (!res.ok) throw new Error('Nicht gefunden');
+        const data = await res.json();
+        
+        document.getElementById('content').innerHTML = renderMarkdown(data.inhalt);
+        
+        // Aktiven Link markieren
+        document.querySelectorAll('#nav a').forEach(a => {
+          a.classList.toggle('active', a.dataset.id === id);
+        });
+        
+        // Scroll nach oben
+        window.scrollTo(0, 0);
+      } catch (e) {
+        document.getElementById('content').innerHTML = '<h1>Fehler</h1><p>Seite konnte nicht geladen werden.</p>';
+      }
+    }
+    
+    // Hash-Navigation
+    function handleHash() {
+      const hash = window.location.hash.slice(1) || '01-erste-schritte';
+      loadChapter(hash);
+    }
+    
+    window.addEventListener('hashchange', handleHash);
+    handleHash();
+  </script>
+</body>
+</html>

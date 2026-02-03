@@ -1,0 +1,117 @@
+// Hüpfender Ball - Physik-Demo für BenLang
+// Ein Ball, der von den Wänden abprallt!
+
+SPIEL "Hüpfender Ball"
+
+// Ball-Eigenschaften
+VAR ballX = 400
+VAR ballY = 100
+VAR ballRadius = 25
+
+// Geschwindigkeit
+VAR geschwindigkeitX = 5
+VAR geschwindigkeitY = 0
+
+// Physik
+VAR schwerkraft = 0.3
+VAR daempfung = 0.9
+VAR bodenReibung = 0.99
+
+// Spielfeld
+VAR bodenY = 550
+
+// Farben
+VAR ballFarbe = "#e94560"
+VAR bodenFarbe = "#4ecca3"
+
+WENN_START {
+    SCHREIBE("Klicke mit der Maus, um den Ball zu bewegen!")
+}
+
+WENN_IMMER {
+    // Hintergrund
+    ZEICHNE_RECHTECK(0, 0, 800, 600, "#1a1a2e")
+    
+    // Schwerkraft anwenden
+    geschwindigkeitY = geschwindigkeitY + schwerkraft
+    
+    // Position aktualisieren
+    ballX = ballX + geschwindigkeitX
+    ballY = ballY + geschwindigkeitY
+    
+    // Boden-Kollision
+    WENN ballY + ballRadius > bodenY {
+        ballY = bodenY - ballRadius
+        geschwindigkeitY = 0 - (geschwindigkeitY * daempfung)
+        geschwindigkeitX = geschwindigkeitX * bodenReibung
+    }
+    
+    // Decken-Kollision
+    WENN ballY - ballRadius < 0 {
+        ballY = ballRadius
+        geschwindigkeitY = 0 - (geschwindigkeitY * daempfung)
+    }
+    
+    // Wand-Kollision links
+    WENN ballX - ballRadius < 0 {
+        ballX = ballRadius
+        geschwindigkeitX = 0 - (geschwindigkeitX * daempfung)
+    }
+    
+    // Wand-Kollision rechts
+    WENN ballX + ballRadius > 800 {
+        ballX = 800 - ballRadius
+        geschwindigkeitX = 0 - (geschwindigkeitX * daempfung)
+    }
+    
+    // Mausklick - Ball zur Maus bewegen
+    WENN MAUS_GEDRUECKT() {
+        VAR mausX = MAUS_X()
+        VAR mausY = MAUS_Y()
+        
+        // Richtung zur Maus berechnen
+        VAR richtungX = mausX - ballX
+        VAR richtungY = mausY - ballY
+        
+        // Impuls geben
+        geschwindigkeitX = geschwindigkeitX + (richtungX * 0.02)
+        geschwindigkeitY = geschwindigkeitY + (richtungY * 0.02)
+    }
+    
+    // Boden zeichnen
+    ZEICHNE_RECHTECK(0, bodenY, 800, 50, bodenFarbe)
+    
+    // Gras-Effekt
+    FUER i VON 0 BIS 40 {
+        VAR grasX = i * 20
+        ZEICHNE_LINIE(grasX, bodenY, grasX + 5, bodenY - 10, "#5ee0b0")
+    }
+    
+    // Schatten
+    VAR schattenGroesse = ballRadius * (1 - ((bodenY - ballY) / 600))
+    WENN schattenGroesse < 5 {
+        schattenGroesse = 5
+    }
+    ZEICHNE_KREIS(ballX, bodenY - 5, schattenGroesse, "#0a0a1a")
+    
+    // Ball zeichnen
+    ZEICHNE_KREIS(ballX, ballY, ballRadius, ballFarbe)
+    ZEICHNE_KREIS(ballX - 8, ballY - 8, 8, "#ff8fa3")
+    
+    // Geschwindigkeitsanzeige
+    ZEICHNE_RECHTECK(10, 10, 200, 60, "#16213e")
+    ZEIGE_TEXT("Geschwindigkeit X: " + RUNDEN(geschwindigkeitX), 20, 30, "#ffffff", 14)
+    ZEIGE_TEXT("Geschwindigkeit Y: " + RUNDEN(geschwindigkeitY), 20, 50, "#ffffff", 14)
+    
+    // Anleitung
+    ZEIGE_TEXT("Klicke, um den Ball zu bewegen!", 280, 580, "#8892b0", 16)
+}
+
+// Leertaste für Reset
+WENN_TASTE("leertaste") {
+    ballX = 400
+    ballY = 100
+    geschwindigkeitX = ZUFALL(-8, 8)
+    geschwindigkeitY = 0
+    SCHREIBE("Ball zurückgesetzt!")
+}

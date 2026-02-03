@@ -1,0 +1,35 @@
+// Einfacher Test für FRAGE()
+SPIEL "Test"
+
+VAR name = ""
+VAR antwort = ""
+VAR bereit = FALSCH
+
+WENN_START {
+    name = FRAGE("Wie heisst du?")
+    SCHREIBE("Name ist: " + name)
+    bereit = WAHR
+}
+
+WENN_IMMER {
+    ZEICHNE_RECHTECK(0, 0, 800, 600, "#1a1a2e")
+    
+    WENN bereit {
+        ZEIGE_TEXT("Hallo " + name + "!", 300, 200, "#4ecca3", 30)
+        ZEIGE_TEXT("Druecke LEERTASTE", 280, 300, "#ffffff", 20)
+        
+        WENN antwort != "" {
+            ZEIGE_TEXT("Du sagtest: " + antwort, 280, 400, "#ffff00", 24)
+        }
+    } SONST {
+        ZEIGE_TEXT("Lade...", 350, 300, "#ffffff", 20)
+    }
+}
+
+WENN_TASTE("leertaste") {
+    WENN bereit {
+        SCHREIBE("Leertaste gedrueckt!")
+        antwort = FRAGE("Was ist deine Lieblingsfarbe?")
+        SCHREIBE("Antwort: " + antwort)
+    }
+}

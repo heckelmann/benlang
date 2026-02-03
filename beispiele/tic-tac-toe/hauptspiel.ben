@@ -1,0 +1,333 @@
+// Tic-Tac-Toe - Klassisches Spiel fuer zwei Spieler
+// Bedienung: Klicke mit der Maus auf ein Feld
+// Demonstriert: FIGUR, BILD_WECHSELN, Maussteuerung
+
+SPIEL "Tic Tac Toe"
+
+// Spielfeld-Konstanten
+VAR feldGroesse = 120
+VAR startX = 260
+VAR startY = 150
+
+// Spielfeld-Figuren (9 Felder)
+FIGUR feld0 = LADE_BILD("leer.png")
+FIGUR feld1 = LADE_BILD("leer.png")
+FIGUR feld2 = LADE_BILD("leer.png")
+FIGUR feld3 = LADE_BILD("leer.png")
+FIGUR feld4 = LADE_BILD("leer.png")
+FIGUR feld5 = LADE_BILD("leer.png")
+FIGUR feld6 = LADE_BILD("leer.png")
+FIGUR feld7 = LADE_BILD("leer.png")
+FIGUR feld8 = LADE_BILD("leer.png")
+
+// Spielzustand pro Feld (0 = leer, 1 = X, 2 = O)
+VAR zustand0 = 0
+VAR zustand1 = 0
+VAR zustand2 = 0
+VAR zustand3 = 0
+VAR zustand4 = 0
+VAR zustand5 = 0
+VAR zustand6 = 0
+VAR zustand7 = 0
+VAR zustand8 = 0
+
+// Spielstatus
+VAR aktuellerSpieler = 1    // 1 = X, 2 = O
+VAR spielLaeuft = WAHR
+VAR gewinner = 0            // 0 = keiner, 1 = X, 2 = O, 3 = Unentschieden
+VAR mausWarGedrueckt = FALSCH
+VAR feldGeklickt = FALSCH
+
+WENN_START {
+    SCHREIBE("Tic Tac Toe gestartet!")
+    SCHREIBE("Spieler X beginnt - Klicke auf ein Feld!")
+    
+    // Felder positionieren - Reihe 1
+    feld0.x = startX
+    feld0.y = startY
+    feld1.x = startX + feldGroesse
+    feld1.y = startY
+    feld2.x = startX + feldGroesse * 2
+    feld2.y = startY
+    
+    // Reihe 2
+    feld3.x = startX
+    feld3.y = startY + feldGroesse
+    feld4.x = startX + feldGroesse
+    feld4.y = startY + feldGroesse
+    feld5.x = startX + feldGroesse * 2
+    feld5.y = startY + feldGroesse
+    
+    // Reihe 3
+    feld6.x = startX
+    feld6.y = startY + feldGroesse * 2
+    feld7.x = startX + feldGroesse
+    feld7.y = startY + feldGroesse * 2
+    feld8.x = startX + feldGroesse * 2
+    feld8.y = startY + feldGroesse * 2
+}
+
+WENN_IMMER {
+    // Hintergrund
+    ZEICHNE_RECHTECK(0, 0, 800, 600, "#dce8ed")
+    
+    // Titel
+    ZEIGE_TEXT("Tic Tac Toe", 310, 50, "#1a2a3a", 36)
+    
+    // Spieler-Anzeige
+    WENN spielLaeuft {
+        WENN aktuellerSpieler == 1 {
+            ZEIGE_TEXT("Spieler X ist dran", 305, 100, "#a95b64", 20)
+        } SONST {
+            ZEIGE_TEXT("Spieler O ist dran", 305, 100, "#5a9bb0", 20)
+        }
+    }
+    
+    // Spielfeld-Hintergrund (Gitter-Rahmen)
+    ZEICHNE_RECHTECK(startX - 5, startY - 5, feldGroesse * 3 + 10, feldGroesse * 3 + 10, "#a0b8c4")
+    
+    // === Mausklick-Erkennung ===
+    feldGeklickt = FALSCH
+    
+    WENN spielLaeuft UND MAUS_GEDRUECKT() UND NICHT mausWarGedrueckt {
+        // Feld 0 (oben links)
+        WENN MAUS_X() >= startX UND MAUS_X() < startX + feldGroesse {
+            WENN MAUS_Y() >= startY UND MAUS_Y() < startY + feldGroesse {
+                WENN zustand0 == 0 {
+                    zustand0 = aktuellerSpieler
+                    WENN aktuellerSpieler == 1 {
+                        BILD_WECHSELN(feld0, "x.png")
+                    } SONST {
+                        BILD_WECHSELN(feld0, "o.png")
+                    }
+                    feldGeklickt = WAHR
+                }
+            }
+        }
+        
+        // Feld 1 (oben mitte)
+        WENN MAUS_X() >= startX + feldGroesse UND MAUS_X() < startX + feldGroesse * 2 {
+            WENN MAUS_Y() >= startY UND MAUS_Y() < startY + feldGroesse {
+                WENN zustand1 == 0 {
+                    zustand1 = aktuellerSpieler
+                    WENN aktuellerSpieler == 1 {
+                        BILD_WECHSELN(feld1, "x.png")
+                    } SONST {
+                        BILD_WECHSELN(feld1, "o.png")
+                    }
+                    feldGeklickt = WAHR
+                }
+            }
+        }
+        
+        // Feld 2 (oben rechts)
+        WENN MAUS_X() >= startX + feldGroesse * 2 UND MAUS_X() < startX + feldGroesse * 3 {
+            WENN MAUS_Y() >= startY UND MAUS_Y() < startY + feldGroesse {
+                WENN zustand2 == 0 {
+                    zustand2 = aktuellerSpieler
+                    WENN aktuellerSpieler == 1 {
+                        BILD_WECHSELN(feld2, "x.png")
+                    } SONST {
+                        BILD_WECHSELN(feld2, "o.png")
+                    }
+                    feldGeklickt = WAHR
+                }
+            }
+        }
+        
+        // Feld 3 (mitte links)
+        WENN MAUS_X() >= startX UND MAUS_X() < startX + feldGroesse {
+            WENN MAUS_Y() >= startY + feldGroesse UND MAUS_Y() < startY + feldGroesse * 2 {
+                WENN zustand3 == 0 {
+                    zustand3 = aktuellerSpieler
+                    WENN aktuellerSpieler == 1 {
+                        BILD_WECHSELN(feld3, "x.png")
+                    } SONST {
+                        BILD_WECHSELN(feld3, "o.png")
+                    }
+                    feldGeklickt = WAHR
+                }
+            }
+        }
+        
+        // Feld 4 (mitte mitte)
+        WENN MAUS_X() >= startX + feldGroesse UND MAUS_X() < startX + feldGroesse * 2 {
+            WENN MAUS_Y() >= startY + feldGroesse UND MAUS_Y() < startY + feldGroesse * 2 {
+                WENN zustand4 == 0 {
+                    zustand4 = aktuellerSpieler
+                    WENN aktuellerSpieler == 1 {
+                        BILD_WECHSELN(feld4, "x.png")
+                    } SONST {
+                        BILD_WECHSELN(feld4, "o.png")
+                    }
+                    feldGeklickt = WAHR
+                }
+            }
+        }
+        
+        // Feld 5 (mitte rechts)
+        WENN MAUS_X() >= startX + feldGroesse * 2 UND MAUS_X() < startX + feldGroesse * 3 {
+            WENN MAUS_Y() >= startY + feldGroesse UND MAUS_Y() < startY + feldGroesse * 2 {
+                WENN zustand5 == 0 {
+                    zustand5 = aktuellerSpieler
+                    WENN aktuellerSpieler == 1 {
+                        BILD_WECHSELN(feld5, "x.png")
+                    } SONST {
+                        BILD_WECHSELN(feld5, "o.png")
+                    }
+                    feldGeklickt = WAHR
+                }
+            }
+        }
+        
+        // Feld 6 (unten links)
+        WENN MAUS_X() >= startX UND MAUS_X() < startX + feldGroesse {
+            WENN MAUS_Y() >= startY + feldGroesse * 2 UND MAUS_Y() < startY + feldGroesse * 3 {
+                WENN zustand6 == 0 {
+                    zustand6 = aktuellerSpieler
+                    WENN aktuellerSpieler == 1 {
+                        BILD_WECHSELN(feld6, "x.png")
+                    } SONST {
+                        BILD_WECHSELN(feld6, "o.png")
+                    }
+                    feldGeklickt = WAHR
+                }
+            }
+        }
+        
+        // Feld 7 (unten mitte)
+        WENN MAUS_X() >= startX + feldGroesse UND MAUS_X() < startX + feldGroesse * 2 {
+            WENN MAUS_Y() >= startY + feldGroesse * 2 UND MAUS_Y() < startY + feldGroesse * 3 {
+                WENN zustand7 == 0 {
+                    zustand7 = aktuellerSpieler
+                    WENN aktuellerSpieler == 1 {
+                        BILD_WECHSELN(feld7, "x.png")
+                    } SONST {
+                        BILD_WECHSELN(feld7, "o.png")
+                    }
+                    feldGeklickt = WAHR
+                }
+            }
+        }
+        
+        // Feld 8 (unten rechts)
+        WENN MAUS_X() >= startX + feldGroesse * 2 UND MAUS_X() < startX + feldGroesse * 3 {
+            WENN MAUS_Y() >= startY + feldGroesse * 2 UND MAUS_Y() < startY + feldGroesse * 3 {
+                WENN zustand8 == 0 {
+                    zustand8 = aktuellerSpieler
+                    WENN aktuellerSpieler == 1 {
+                        BILD_WECHSELN(feld8, "x.png")
+                    } SONST {
+                        BILD_WECHSELN(feld8, "o.png")
+                    }
+                    feldGeklickt = WAHR
+                }
+            }
+        }
+        
+        // Spieler wechseln wenn Feld geklickt
+        WENN feldGeklickt {
+            aktuellerSpieler = 3 - aktuellerSpieler
+            
+            // Gewinner pruefen - Reihen
+            WENN zustand0 > 0 UND zustand0 == zustand1 UND zustand1 == zustand2 {
+                gewinner = zustand0
+                spielLaeuft = FALSCH
+            }
+            WENN zustand3 > 0 UND zustand3 == zustand4 UND zustand4 == zustand5 {
+                gewinner = zustand3
+                spielLaeuft = FALSCH
+            }
+            WENN zustand6 > 0 UND zustand6 == zustand7 UND zustand7 == zustand8 {
+                gewinner = zustand6
+                spielLaeuft = FALSCH
+            }
+            
+            // Spalten
+            WENN zustand0 > 0 UND zustand0 == zustand3 UND zustand3 == zustand6 {
+                gewinner = zustand0
+                spielLaeuft = FALSCH
+            }
+            WENN zustand1 > 0 UND zustand1 == zustand4 UND zustand4 == zustand7 {
+                gewinner = zustand1
+                spielLaeuft = FALSCH
+            }
+            WENN zustand2 > 0 UND zustand2 == zustand5 UND zustand5 == zustand8 {
+                gewinner = zustand2
+                spielLaeuft = FALSCH
+            }
+            
+            // Diagonalen
+            WENN zustand0 > 0 UND zustand0 == zustand4 UND zustand4 == zustand8 {
+                gewinner = zustand0
+                spielLaeuft = FALSCH
+            }
+            WENN zustand2 > 0 UND zustand2 == zustand4 UND zustand4 == zustand6 {
+                gewinner = zustand2
+                spielLaeuft = FALSCH
+            }
+            
+            // Unentschieden pruefen
+            WENN spielLaeuft {
+                WENN zustand0 > 0 UND zustand1 > 0 UND zustand2 > 0 UND zustand3 > 0 UND zustand4 > 0 UND zustand5 > 0 UND zustand6 > 0 UND zustand7 > 0 UND zustand8 > 0 {
+                    gewinner = 3
+                    spielLaeuft = FALSCH
+                }
+            }
+        }
+    }
+    
+    // Mausstatus merken
+    mausWarGedrueckt = MAUS_GEDRUECKT()
+    
+    // Gewinner-Anzeige
+    WENN NICHT spielLaeuft {
+        ZEICHNE_RECHTECK(200, 520, 400, 60, "#d0dfe6")
+        ZEICHNE_RECHTECK(202, 522, 396, 56, "#b8ced8")
+        
+        WENN gewinner == 1 {
+            ZEIGE_TEXT("Spieler X gewinnt!", 300, 560, "#a95b64", 28)
+        }
+        WENN gewinner == 2 {
+            ZEIGE_TEXT("Spieler O gewinnt!", 300, 560, "#5a9bb0", 28)
+        }
+        WENN gewinner == 3 {
+            ZEIGE_TEXT("Unentschieden!", 315, 560, "#4a5a6a", 28)
+        }
+    }
+    
+    // Neustart-Hinweis
+    WENN NICHT spielLaeuft {
+        ZEIGE_TEXT("Leertaste fuer neues Spiel", 290, 590, "#4a5a6a", 14)
+    }
+}
+
+// Neustart
+WENN_TASTE("leertaste") {
+    // Alle Felder zuruecksetzen
+    zustand0 = 0
+    zustand1 = 0
+    zustand2 = 0
+    zustand3 = 0
+    zustand4 = 0
+    zustand5 = 0
+    zustand6 = 0
+    zustand7 = 0
+    zustand8 = 0
+    
+    // Alle Bilder auf leer setzen
+    BILD_WECHSELN(feld0, "leer.png")
+    BILD_WECHSELN(feld1, "leer.png")
+    BILD_WECHSELN(feld2, "leer.png")
+    BILD_WECHSELN(feld3, "leer.png")
+    BILD_WECHSELN(feld4, "leer.png")
+    BILD_WECHSELN(feld5, "leer.png")
+    BILD_WECHSELN(feld6, "leer.png")
+    BILD_WECHSELN(feld7, "leer.png")
+    BILD_WECHSELN(feld8, "leer.png")
+    
+    aktuellerSpieler = 1
+    spielLaeuft = WAHR
+    gewinner = 0
+    SCHREIBE("Neues Spiel gestartet!")
+}

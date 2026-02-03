@@ -1,0 +1,228 @@
+// Labyrinth-Spiel
+// Steuere den Spieler mit den Pfeiltasten zum Ziel!
+// Level werden aus level.ben geladen
+
+SPIEL "Labyrinth"
+
+// Spielfeld-Konstanten
+VAR zellenGroesse = 50
+VAR startX = 150
+VAR startY = 100
+
+// Spieler-Position (in Zellen, nicht Pixel)
+VAR spielerX = 1
+VAR spielerY = 1
+
+// Aktuelles Level
+VAR aktuellesLevel = 1
+
+// Spielzustand
+VAR spielGewonnen = FALSCH
+VAR alleGewonnen = FALSCH
+
+// Aktuelle Level-Daten (werden beim Laden gesetzt)
+VAR reihe0 = []
+VAR reihe1 = []
+VAR reihe2 = []
+VAR reihe3 = []
+VAR reihe4 = []
+VAR reihe5 = []
+VAR reihe6 = []
+VAR reihe7 = []
+
+// Funktion: Level laden
+FUNKTION ladeLevel(levelNummer) {
+    spielGewonnen = FALSCH
+    
+    WENN levelNummer == 1 {
+        reihe0 = level1_reihe0
+        reihe1 = level1_reihe1
+        reihe2 = level1_reihe2
+        reihe3 = level1_reihe3
+        reihe4 = level1_reihe4
+        reihe5 = level1_reihe5
+        reihe6 = level1_reihe6
+        reihe7 = level1_reihe7
+    }
+    WENN levelNummer == 2 {
+        reihe0 = level2_reihe0
+        reihe1 = level2_reihe1
+        reihe2 = level2_reihe2
+        reihe3 = level2_reihe3
+        reihe4 = level2_reihe4
+        reihe5 = level2_reihe5
+        reihe6 = level2_reihe6
+        reihe7 = level2_reihe7
+    }
+    WENN levelNummer == 3 {
+        reihe0 = level3_reihe0
+        reihe1 = level3_reihe1
+        reihe2 = level3_reihe2
+        reihe3 = level3_reihe3
+        reihe4 = level3_reihe4
+        reihe5 = level3_reihe5
+        reihe6 = level3_reihe6
+        reihe7 = level3_reihe7
+    }
+    
+    // Startposition finden
+    findeStart()
+}
+
+// Funktion: Startposition finden
+FUNKTION findeStart() {
+    FUER x VON 0 BIS 9 {
+        WENN reihe0[x] == "S" { spielerX = x spielerY = 0 }
+        WENN reihe1[x] == "S" { spielerX = x spielerY = 1 }
+        WENN reihe2[x] == "S" { spielerX = x spielerY = 2 }
+        WENN reihe3[x] == "S" { spielerX = x spielerY = 3 }
+        WENN reihe4[x] == "S" { spielerX = x spielerY = 4 }
+        WENN reihe5[x] == "S" { spielerX = x spielerY = 5 }
+        WENN reihe6[x] == "S" { spielerX = x spielerY = 6 }
+        WENN reihe7[x] == "S" { spielerX = x spielerY = 7 }
+    }
+}
+
+// Funktion: Zelle an Position holen
+FUNKTION holeZelle(x, y) {
+    WENN y == 0 { ZURUECK reihe0[x] }
+    WENN y == 1 { ZURUECK reihe1[x] }
+    WENN y == 2 { ZURUECK reihe2[x] }
+    WENN y == 3 { ZURUECK reihe3[x] }
+    WENN y == 4 { ZURUECK reihe4[x] }
+    WENN y == 5 { ZURUECK reihe5[x] }
+    WENN y == 6 { ZURUECK reihe6[x] }
+    WENN y == 7 { ZURUECK reihe7[x] }
+    ZURUECK "X"
+}
+
+// Funktion: Pruefen ob Bewegung moeglich
+FUNKTION kannBewegen(neuesX, neuesY) {
+    // Grenzen pruefen
+    WENN neuesX < 0 ODER neuesX >= levelBreite { ZURUECK FALSCH }
+    WENN neuesY < 0 ODER neuesY >= levelHoehe { ZURUECK FALSCH }
+    
+    // Wand pruefen
+    VAR zelle = holeZelle(neuesX, neuesY)
+    WENN zelle == "X" { ZURUECK FALSCH }
+    
+    ZURUECK WAHR
+}
+
+// Funktion: Bewegung ausfuehren
+FUNKTION bewege(dx, dy) {
+    WENN spielGewonnen { ZURUECK 0 }
+    
+    VAR neuesX = spielerX + dx
+    VAR neuesY = spielerY + dy
+    
+    WENN kannBewegen(neuesX, neuesY) {
+        spielerX = neuesX
+        spielerY = neuesY
+        
+        // Ziel erreicht?
+        VAR zelle = holeZelle(spielerX, spielerY)
+        WENN zelle == "Z" {
+            spielGewonnen = WAHR
+        }
+    }
+}
+
+// Spiel starten
+WENN_START {
+    ladeLevel(1)
+}
+
+// Steuerung
+WENN_TASTE("hoch") {
+    bewege(0, -1)
+}
+
+WENN_TASTE("runter") {
+    bewege(0, 1)
+}
+
+WENN_TASTE("links") {
+    bewege(-1, 0)
+}
+
+WENN_TASTE("rechts") {
+    bewege(1, 0)
+}
+
+// Naechstes Level oder Neustart
+WENN_TASTE("leertaste") {
+    WENN spielGewonnen {
+        WENN aktuellesLevel < maxLevel {
+            aktuellesLevel = aktuellesLevel + 1
+            ladeLevel(aktuellesLevel)
+        } SONST {
+            alleGewonnen = WAHR
+        }
+    }
+}
+
+// Neustart mit R
+WENN_TASTE("r") {
+    aktuellesLevel = 1
+    alleGewonnen = FALSCH
+    ladeLevel(1)
+}
+
+// Zeichnen
+WENN_IMMER {
+    // Hintergrund
+    ZEICHNE_RECHTECK(0, 0, 800, 600, "#0d1117")
+    
+    // Titel
+    ZEIGE_TEXT("Labyrinth", 350, 40, "#00d4ff", 32)
+    ZEIGE_TEXT("Level " + aktuellesLevel + " / " + maxLevel, 350, 70, "#6b7a8a", 18)
+    
+    // Level zeichnen
+    FUER y VON 0 BIS 7 {
+        FUER x VON 0 BIS 9 {
+            VAR zelle = holeZelle(x, y)
+            VAR pixelX = startX + x * zellenGroesse
+            VAR pixelY = startY + y * zellenGroesse
+            
+            // Wand
+            WENN zelle == "X" {
+                ZEICHNE_RECHTECK(pixelX, pixelY, zellenGroesse - 2, zellenGroesse - 2, "#2a3545")
+            }
+            
+            // Weg / Start
+            WENN zelle == " " ODER zelle == "S" {
+                ZEICHNE_RECHTECK(pixelX, pixelY, zellenGroesse - 2, zellenGroesse - 2, "#12171f")
+            }
+            
+            // Ziel
+            WENN zelle == "Z" {
+                ZEICHNE_RECHTECK(pixelX, pixelY, zellenGroesse - 2, zellenGroesse - 2, "#12171f")
+                ZEICHNE_RECHTECK(pixelX + 10, pixelY + 10, zellenGroesse - 22, zellenGroesse - 22, "#00ff9d")
+            }
+        }
+    }
+    
+    // Spieler zeichnen
+    VAR spielerPixelX = startX + spielerX * zellenGroesse + zellenGroesse / 2
+    VAR spielerPixelY = startY + spielerY * zellenGroesse + zellenGroesse / 2
+    ZEICHNE_KREIS(spielerPixelX, spielerPixelY, 18, "#00d4ff")
+    ZEICHNE_KREIS(spielerPixelX, spielerPixelY, 12, "#0d1117")
+    ZEICHNE_KREIS(spielerPixelX, spielerPixelY, 8, "#00d4ff")
+    
+    // Anleitung
+    ZEIGE_TEXT("Pfeiltasten = Bewegen    R = Neustart", 240, 530, "#6b7a8a", 14)
+    
+    // Gewonnen-Nachricht
+    WENN spielGewonnen UND NICHT alleGewonnen {
+        ZEICHNE_RECHTECK(200, 250, 400, 80, "#12171f")
+        ZEIGE_TEXT("Level geschafft!", 310, 290, "#00ff9d", 28)
+        ZEIGE_TEXT("Leertaste = Naechstes Level", 290, 315, "#6b7a8a", 14)
+    }
+    
+    WENN alleGewonnen {
+        ZEICHNE_RECHTECK(200, 250, 400, 80, "#12171f")
+        ZEIGE_TEXT("Alle Level geschafft!", 285, 290, "#ffcc00", 28)
+        ZEIGE_TEXT("R = Von vorne beginnen", 305, 315, "#6b7a8a", 14)
+    }
+}

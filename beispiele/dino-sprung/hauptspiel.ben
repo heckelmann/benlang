@@ -1,0 +1,209 @@
+SPIEL "Dino Sprung"
+
+// Figuren laden
+FIGUR dino = LADE_BILD("dino.png")
+FIGUR kaktus1 = LADE_BILD("kaktus.png")
+FIGUR kaktus2 = LADE_BILD("kaktus_klein.png")
+FIGUR wolke1 = LADE_BILD("wolke.png")
+FIGUR wolke2 = LADE_BILD("wolke.png")
+FIGUR wolke3 = LADE_BILD("wolke.png")
+FIGUR boden = LADE_BILD("boden.png")
+
+// Spieler Position
+VAR geschwindigkeitY = 0
+VAR schwerkraft = 0.4
+VAR sprungKraft = -14
+VAR amBoden = WAHR
+
+// Boden
+VAR bodenY = 480
+
+// Hindernis Geschwindigkeit
+VAR hindernisGeschwindigkeit = 3
+VAR letzteGeschwindigkeitsErhoehung = 0
+
+// Spielstand
+VAR punkte = 0
+VAR highscore = 0
+VAR spielLaeuft = WAHR
+
+WENN_START {
+    SCHREIBE("Dino Sprung gestartet!")
+    SCHREIBE("Druecke LEERTASTE oder HOCH zum Springen!")
+    
+    // Dino positionieren (steht auf dem Boden)
+    dino.x = 80
+    dino.y = bodenY - 70
+    dino.breite = 60
+    dino.hoehe = 70
+    
+    // Kakteen positionieren (stehen auf dem Boden)
+    kaktus1.x = 850
+    kaktus1.y = bodenY - 50
+    kaktus1.breite = 40
+    kaktus1.hoehe = 50
+    
+    kaktus2.x = 1300
+    kaktus2.y = bodenY - 35
+    kaktus2.breite = 25
+    kaktus2.hoehe = 35
+    
+    // Wolken positionieren
+    wolke1.x = 100
+    wolke1.y = 60
+    wolke1.breite = 80
+    wolke1.hoehe = 40
+    
+    wolke2.x = 350
+    wolke2.y = 100
+    wolke2.breite = 70
+    wolke2.hoehe = 35
+    
+    wolke3.x = 600
+    wolke3.y = 45
+    wolke3.breite = 75
+    wolke3.hoehe = 38
+    
+    // Boden
+    boden.x = 0
+    boden.y = bodenY
+    boden.breite = 800
+    boden.hoehe = 20
+}
+
+WENN_IMMER {
+    WENN spielLaeuft {
+        // Himmel zeichnen (hellblau)
+        ZEICHNE_RECHTECK(0, 0, 800, 600, "#87CEEB")
+        
+        // Erde unter dem Boden
+        ZEICHNE_RECHTECK(0, bodenY + 20, 800, 130, "#8B7355")
+        
+        // Wolken langsam bewegen
+        wolke1.x = wolke1.x - 0.5
+        wolke2.x = wolke2.x - 0.7
+        wolke3.x = wolke3.x - 0.6
+        
+        WENN wolke1.x < -100 {
+            wolke1.x = 850
+        }
+        WENN wolke2.x < -100 {
+            wolke2.x = 850
+        }
+        WENN wolke3.x < -100 {
+            wolke3.x = 850
+        }
+        
+        // Schwerkraft anwenden
+        geschwindigkeitY = geschwindigkeitY + schwerkraft
+        dino.y = dino.y + geschwindigkeitY
+        
+        // Boden-Kollision
+        WENN dino.y + dino.hoehe >= bodenY {
+            dino.y = bodenY - dino.hoehe
+            geschwindigkeitY = 0
+            amBoden = WAHR
+        }
+        
+        // Hindernis 1 bewegen
+        kaktus1.x = kaktus1.x - hindernisGeschwindigkeit
+        
+        // Hindernis 1 zuruecksetzen
+        WENN kaktus1.x < -50 {
+            kaktus1.x = 800 + ZUFALL(200, 400)
+            punkte = punkte + 1
+        }
+        
+        // Hindernis 2 bewegen
+        kaktus2.x = kaktus2.x - hindernisGeschwindigkeit
+        
+        // Hindernis 2 zuruecksetzen
+        WENN kaktus2.x < -50 {
+            kaktus2.x = 800 + ZUFALL(300, 600)
+            punkte = punkte + 1
+        }
+        
+        // Kollision mit Kaktus 1 pruefen
+        // Horizontal: Dino und Kaktus ueberlappen sich
+        // Vertikal: Dino ist nicht hoch genug gesprungen
+        WENN dino.x + dino.breite - 10 > kaktus1.x UND dino.x + 10 < kaktus1.x + kaktus1.breite {
+            WENN dino.y + dino.hoehe > kaktus1.y {
+                spielLaeuft = FALSCH
+                WENN punkte > highscore {
+                    highscore = punkte
+                }
+            }
+        }
+        
+        // Kollision mit Kaktus 2 pruefen
+        WENN dino.x + dino.breite - 10 > kaktus2.x UND dino.x + 10 < kaktus2.x + kaktus2.breite {
+            WENN dino.y + dino.hoehe > kaktus2.y {
+                spielLaeuft = FALSCH
+                WENN punkte > highscore {
+                    highscore = punkte
+                }
+            }
+        }
+        
+        // Geschwindigkeit erhoehen alle 10 Punkte (nur einmal pro Schwelle)
+        WENN punkte >= letzteGeschwindigkeitsErhoehung + 10 {
+            letzteGeschwindigkeitsErhoehung = letzteGeschwindigkeitsErhoehung + 10
+            hindernisGeschwindigkeit = hindernisGeschwindigkeit + 0.3
+            WENN hindernisGeschwindigkeit > 7 {
+                hindernisGeschwindigkeit = 7
+            }
+            SCHREIBE("Schneller! Geschwindigkeit: " + hindernisGeschwindigkeit)
+        }
+        
+        // Punkte anzeigen
+        ZEIGE_TEXT("Punkte: " + punkte, 20, 30, "#333333", 24)
+        ZEIGE_TEXT("Highscore: " + highscore, 620, 30, "#666666", 18)
+        
+        // Springen mit Leertaste oder Pfeiltaste hoch
+        WENN TASTE_GEDRUECKT("leertaste") ODER TASTE_GEDRUECKT("hoch") {
+            WENN amBoden {
+                geschwindigkeitY = sprungKraft
+                amBoden = FALSCH
+            }
+        }
+    } SONST {
+        // Game Over Bildschirm
+        ZEICHNE_RECHTECK(0, 0, 800, 600, "#87CEEB")
+        ZEICHNE_RECHTECK(0, bodenY + 20, 800, 130, "#8B7355")
+        
+        ZEIGE_TEXT("GAME OVER", 280, 180, "#e74c3c", 48)
+        ZEIGE_TEXT("Punkte: " + punkte, 330, 260, "#333333", 28)
+        ZEIGE_TEXT("Highscore: " + highscore, 320, 310, "#666666", 24)
+        ZEIGE_TEXT("Druecke EINGABE zum Neustarten", 220, 400, "#555555", 22)
+    }
+}
+
+WENN_TASTE("leertaste") {
+    WENN spielLaeuft UND amBoden {
+        geschwindigkeitY = sprungKraft
+        amBoden = FALSCH
+    }
+}
+
+WENN_TASTE("hoch") {
+    WENN spielLaeuft UND amBoden {
+        geschwindigkeitY = sprungKraft
+        amBoden = FALSCH
+    }
+}
+
+WENN_TASTE("eingabe") {
+    WENN NICHT spielLaeuft {
+        // Spiel neustarten
+        spielLaeuft = WAHR
+        punkte = 0
+        dino.y = bodenY - 70
+        geschwindigkeitY = 0
+        amBoden = WAHR
+        kaktus1.x = 850
+        kaktus2.x = 1300
+        hindernisGeschwindigkeit = 3
+        letzteGeschwindigkeitsErhoehung = 0
+        SCHREIBE("Neues Spiel gestartet!")
+    }
+}

@@ -1,0 +1,39 @@
+// Level-Definitionen fuer das Labyrinth-Spiel
+// X = Wand, " " = Weg, S = Start, Z = Ziel
+
+// Level 1 - Einfach (10x8)
+VAR level1_reihe0 = ["X", "X", "X", "X", "X", "X", "X", "X", "X", "X"]
+VAR level1_reihe1 = ["X", "S", " ", " ", "X", " ", " ", " ", " ", "X"]
+VAR level1_reihe2 = ["X", "X", "X", " ", "X", " ", "X", "X", " ", "X"]
+VAR level1_reihe3 = ["X", " ", " ", " ", " ", " ", "X", " ", " ", "X"]
+VAR level1_reihe4 = ["X", " ", "X", "X", "X", " ", "X", " ", "X", "X"]
+VAR level1_reihe5 = ["X", " ", " ", " ", "X", " ", " ", " ", " ", "X"]
+VAR level1_reihe6 = ["X", "X", "X", " ", " ", " ", "X", "X", "Z", "X"]
+VAR level1_reihe7 = ["X", "X", "X", "X", "X", "X", "X", "X", "X", "X"]
+
+// Level 2 - Mittel (10x8)
+VAR level2_reihe0 = ["X", "X", "X", "X", "X", "X", "X", "X", "X", "X"]
+VAR level2_reihe1 = ["X", "S", " ", "X", " ", " ", " ", "X", " ", "X"]
+VAR level2_reihe2 = ["X", " ", " ", "X", " ", "X", " ", " ", " ", "X"]
+VAR level2_reihe3 = ["X", " ", "X", "X", " ", "X", "X", "X", " ", "X"]
+VAR level2_reihe4 = ["X", " ", " ", " ", " ", " ", " ", "X", " ", "X"]
+VAR level2_reihe5 = ["X", "X", "X", " ", "X", "X", " ", " ", " ", "X"]
+VAR level2_reihe6 = ["X", " ", " ", " ", "X", " ", " ", "X", "Z", "X"]
+VAR level2_reihe7 = ["X", "X", "X", "X", "X", "X", "X", "X", "X", "X"]
+
+// Level 3 - Schwer (10x8)
+VAR level3_reihe0 = ["X", "X", "X", "X", "X", "X", "X", "X", "X", "X"]
+VAR level3_reihe1 = ["X", "S", " ", " ", " ", "X", " ", " ", " ", "X"]
+VAR level3_reihe2 = ["X", "X", "X", "X", " ", "X", " ", "X", " ", "X"]
+VAR level3_reihe3 = ["X", " ", " ", " ", " ", " ", " ", "X", " ", "X"]
+VAR level3_reihe4 = ["X", " ", "X", "X", "X", "X", " ", "X", " ", "X"]
+VAR level3_reihe5 = ["X", " ", "X", " ", " ", " ", " ", "X", " ", "X"]
+VAR level3_reihe6 = ["X", " ", " ", " ", "X", "X", "X", "X", "Z", "X"]
+VAR level3_reihe7 = ["X", "X", "X", "X", "X", "X", "X", "X", "X", "X"]
+
+// Anzahl der Level
+VAR maxLevel = 3
+
+// Levelgroesse
+VAR levelBreite = 10
+VAR levelHoehe = 8

@@ -1,0 +1,31 @@
+# Build artifacts
+/benlang
+dist/
+
+# IDE/Editor
+.opencode/
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Test projects
+chris-test/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Logs
+*.log

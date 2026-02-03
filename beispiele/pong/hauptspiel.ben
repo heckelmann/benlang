@@ -1,0 +1,250 @@
+// Pong - Das klassische Tennis-Spiel
+// Spieler 1: W/S Tasten | Spieler 2: Pfeiltasten Hoch/Runter
+
+SPIEL "Pong"
+
+// Spielfeld
+VAR feldBreite = 800
+VAR feldHoehe = 600
+
+// Schläger laden (mit Bildern!)
+FIGUR schlaeger1 = LADE_BILD("schlaeger1.png")
+FIGUR schlaeger2 = LADE_BILD("schlaeger2.png")
+FIGUR ballBild = LADE_BILD("ball.png")
+
+// Schläger-Positionen
+VAR schlaeger1X = 30
+VAR schlaeger1Y = 250
+VAR schlaeger2X = 750
+VAR schlaeger2Y = 250
+VAR schlaegerHoehe = 100
+VAR schlaegerBreite = 20
+VAR schlaegerSpeed = 8
+
+// Ball
+VAR ballX = 400
+VAR ballY = 300
+VAR ballGroesse = 20
+VAR ballSpeedX = 5
+VAR ballSpeedY = 3
+
+// Punkte
+VAR punkte1 = 0
+VAR punkte2 = 0
+VAR maxPunkte = 5
+
+// Spielstatus
+VAR spielLaeuft = WAHR
+VAR gewinner = 0
+VAR pausiert = FALSCH
+
+WENN_START {
+    // Schläger positionieren
+    schlaeger1.x = schlaeger1X
+    schlaeger1.y = schlaeger1Y
+    schlaeger2.x = schlaeger2X
+    schlaeger2.y = schlaeger2Y
+    ballBild.x = ballX
+    ballBild.y = ballY
+    
+    SCHREIBE("Pong gestartet!")
+    SCHREIBE("Spieler 1 (Grün): W/S Tasten")
+    SCHREIBE("Spieler 2 (Rot): Pfeiltasten Hoch/Runter")
+}
+
+WENN_IMMER {
+    // Hintergrund (dunkelblau)
+    ZEICHNE_RECHTECK(0, 0, feldBreite, feldHoehe, "#0f0f23")
+    
+    // Mittellinie
+    FUER i VON 0 BIS 19 {
+        ZEICHNE_RECHTECK(feldBreite / 2 - 2, i * 32, 4, 20, "#333355")
+    }
+    
+    WENN spielLaeuft UND NICHT pausiert {
+        // === Schläger 1 Steuerung (W/S) ===
+        WENN TASTE_GEDRUECKT("w") {
+            schlaeger1Y = schlaeger1Y - schlaegerSpeed
+            WENN schlaeger1Y < 0 {
+                schlaeger1Y = 0
+            }
+        }
+        WENN TASTE_GEDRUECKT("s") {
+            schlaeger1Y = schlaeger1Y + schlaegerSpeed
+            WENN schlaeger1Y > feldHoehe - schlaegerHoehe {
+                schlaeger1Y = feldHoehe - schlaegerHoehe
+            }
+        }
+        
+        // === Schläger 2 Steuerung (Pfeiltasten) ===
+        WENN TASTE_GEDRUECKT("hoch") {
+            schlaeger2Y = schlaeger2Y - schlaegerSpeed
+            WENN schlaeger2Y < 0 {
+                schlaeger2Y = 0
+            }
+        }
+        WENN TASTE_GEDRUECKT("runter") {
+            schlaeger2Y = schlaeger2Y + schlaegerSpeed
+            WENN schlaeger2Y > feldHoehe - schlaegerHoehe {
+                schlaeger2Y = feldHoehe - schlaegerHoehe
+            }
+        }
+        
+        // === Ball bewegen ===
+        ballX = ballX + ballSpeedX
+        ballY = ballY + ballSpeedY
+        
+        // Ball: Oben/Unten abprallen
+        WENN ballY <= 0 {
+            ballY = 0
+            ballSpeedY = 0 - ballSpeedY
+        }
+        WENN ballY >= feldHoehe - ballGroesse {
+            ballY = feldHoehe - ballGroesse
+            ballSpeedY = 0 - ballSpeedY
+        }
+        
+        // Ball: Schläger 1 Kollision (links)
+        WENN ballX <= schlaeger1X + schlaegerBreite {
+            WENN ballY + ballGroesse >= schlaeger1Y UND ballY <= schlaeger1Y + schlaegerHoehe {
+                ballX = schlaeger1X + schlaegerBreite
+                ballSpeedX = 0 - ballSpeedX
+                
+                // Winkel basierend auf Aufprallpunkt
+                VAR aufprall = (ballY + ballGroesse / 2) - (schlaeger1Y + schlaegerHoehe / 2)
+                ballSpeedY = aufprall * 0.1
+                
+                // Etwas schneller werden
+                WENN ballSpeedX < 12 {
+                    ballSpeedX = ballSpeedX * 1.05
+                }
+            }
+        }
+        
+        // Ball: Schläger 2 Kollision (rechts)
+        WENN ballX + ballGroesse >= schlaeger2X {
+            WENN ballY + ballGroesse >= schlaeger2Y UND ballY <= schlaeger2Y + schlaegerHoehe {
+                ballX = schlaeger2X - ballGroesse
+                ballSpeedX = 0 - ballSpeedX
+                
+                // Winkel basierend auf Aufprallpunkt
+                VAR aufprall2 = (ballY + ballGroesse / 2) - (schlaeger2Y + schlaegerHoehe / 2)
+                ballSpeedY = aufprall2 * 0.1
+                
+                // Etwas schneller werden
+                WENN ballSpeedX > -12 {
+                    ballSpeedX = ballSpeedX * 1.05
+                }
+            }
+        }
+        
+        // Ball: Links raus (Punkt für Spieler 2)
+        WENN ballX < 0 {
+            punkte2 = punkte2 + 1
+            SCHREIBE("Punkt für Spieler 2! Stand: " + punkte1 + " : " + punkte2)
+            
+            WENN punkte2 >= maxPunkte {
+                spielLaeuft = FALSCH
+                gewinner = 2
+                SCHREIBE("Spieler 2 gewinnt!")
+            } SONST {
+                // Ball zurücksetzen
+                ballX = 400
+                ballY = 300
+                ballSpeedX = 5
+                ballSpeedY = ZUFALL(-3, 3)
+            }
+        }
+        
+        // Ball: Rechts raus (Punkt für Spieler 1)
+        WENN ballX > feldBreite {
+            punkte1 = punkte1 + 1
+            SCHREIBE("Punkt für Spieler 1! Stand: " + punkte1 + " : " + punkte2)
+            
+            WENN punkte1 >= maxPunkte {
+                spielLaeuft = FALSCH
+                gewinner = 1
+                SCHREIBE("Spieler 1 gewinnt!")
+            } SONST {
+                // Ball zurücksetzen
+                ballX = 400
+                ballY = 300
+                ballSpeedX = -5
+                ballSpeedY = ZUFALL(-3, 3)
+            }
+        }
+    }
+    
+    // === Figuren-Positionen aktualisieren ===
+    schlaeger1.x = schlaeger1X
+    schlaeger1.y = schlaeger1Y
+    schlaeger2.x = schlaeger2X
+    schlaeger2.y = schlaeger2Y
+    ballBild.x = ballX
+    ballBild.y = ballY
+    
+    // === UI zeichnen ===
+    
+    // Punkte-Anzeige
+    ZEIGE_TEXT(punkte1 + "", feldBreite / 2 - 80, 60, "#4ecca3", 48)
+    ZEIGE_TEXT(":", feldBreite / 2 - 10, 60, "#ffffff", 48)
+    ZEIGE_TEXT(punkte2 + "", feldBreite / 2 + 40, 60, "#e94560", 48)
+    
+    // Spielernamen
+    ZEIGE_TEXT("Spieler 1", 20, 30, "#4ecca3", 16)
+    ZEIGE_TEXT("Spieler 2", feldBreite - 100, 30, "#e94560", 16)
+    
+    // Steuerungs-Hilfe
+    ZEIGE_TEXT("W/S", 50, feldHoehe - 20, "#4ecca3", 14)
+    ZEIGE_TEXT("↑/↓", feldBreite - 60, feldHoehe - 20, "#e94560", 14)
+    
+    // Gewinner-Anzeige
+    WENN NICHT spielLaeuft {
+        ZEICHNE_RECHTECK(200, 220, 400, 160, "#16213e")
+        
+        WENN gewinner == 1 {
+            ZEIGE_TEXT("SPIELER 1 GEWINNT!", 270, 280, "#4ecca3", 28)
+        } SONST {
+            ZEIGE_TEXT("SPIELER 2 GEWINNT!", 270, 280, "#e94560", 28)
+        }
+        
+        ZEIGE_TEXT("Endstand: " + punkte1 + " : " + punkte2, 320, 330, "#ffffff", 20)
+        ZEIGE_TEXT("LEERTASTE für Neustart", 290, 365, "#8892b0", 16)
+    }
+    
+    // Pause-Anzeige
+    WENN pausiert {
+        ZEICHNE_RECHTECK(300, 270, 200, 60, "#16213e")
+        ZEIGE_TEXT("PAUSIERT", 345, 310, "#f39c12", 24)
+    }
+}
+
+// Neustart
+WENN_TASTE("leertaste") {
+    WENN NICHT spielLaeuft {
+        // Alles zurücksetzen
+        schlaeger1Y = 250
+        schlaeger2Y = 250
+        ballX = 400
+        ballY = 300
+        ballSpeedX = 5
+        ballSpeedY = 3
+        punkte1 = 0
+        punkte2 = 0
+        spielLaeuft = WAHR
+        gewinner = 0
+        SCHREIBE("Neues Spiel gestartet!")
+    }
+}
+
+// Pause
+WENN_TASTE("p") {
+    WENN spielLaeuft {
+        pausiert = NICHT pausiert
+        WENN pausiert {
+            SCHREIBE("Spiel pausiert")
+        } SONST {
+            SCHREIBE("Spiel fortgesetzt")
+        }
+    }
+}

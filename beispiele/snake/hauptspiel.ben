@@ -1,0 +1,218 @@
+// Snake - Das klassische Schlangenspiel
+// Benutze die Pfeiltasten um die Schlange zu steuern!
+
+SPIEL "Snake"
+
+// Spielfeld-Größe
+VAR feldBreite = 800
+VAR feldHoehe = 600
+VAR zellGroesse = 20
+
+// Schlange - wir speichern alte Positionen für die Bewegung
+VAR schlangeX = [400, 380, 360, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+VAR schlangeY = [300, 300, 300, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+VAR schlangenLaenge = 3
+
+// Temporäre Arrays für Bewegung
+VAR tempX = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+VAR tempY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+// Bewegungsrichtung
+VAR richtungX = 1
+VAR richtungY = 0
+
+// Futter
+VAR futterX = 100
+VAR futterY = 100
+
+// Spielstatus
+VAR punkte = 0
+VAR spielLaeuft = WAHR
+VAR frameZaehler = 0
+VAR bewegungsIntervall = 8
+
+WENN_START {
+    // Futter an zufällige Position
+    futterX = ZUFALL(1, 38) * zellGroesse
+    futterY = ZUFALL(1, 28) * zellGroesse
+    SCHREIBE("Snake gestartet! Benutze die Pfeiltasten!")
+}
+
+WENN_IMMER {
+    // Hintergrund
+    ZEICHNE_RECHTECK(0, 0, feldBreite, feldHoehe, "#1a1a2e")
+    
+    // Gitter zeichnen
+    FUER i VON 0 BIS 40 {
+        ZEICHNE_LINIE(i * zellGroesse, 0, i * zellGroesse, feldHoehe, "#252545")
+    }
+    FUER i VON 0 BIS 30 {
+        ZEICHNE_LINIE(0, i * zellGroesse, feldBreite, i * zellGroesse, "#252545")
+    }
+    
+    WENN spielLaeuft {
+        // Frame-Zähler erhöhen
+        frameZaehler = frameZaehler + 1
+        
+        // Nur alle X Frames bewegen
+        WENN frameZaehler >= bewegungsIntervall {
+            frameZaehler = 0
+            
+            // Neue Kopfposition berechnen
+            VAR neuerKopfX = schlangeX[0] + (richtungX * zellGroesse)
+            VAR neuerKopfY = schlangeY[0] + (richtungY * zellGroesse)
+            
+            // Wand-Kollision prüfen
+            WENN neuerKopfX < 0 ODER neuerKopfX >= feldBreite ODER neuerKopfY < 0 ODER neuerKopfY >= feldHoehe {
+                spielLaeuft = FALSCH
+                SCHREIBE("Game Over! Punkte: " + punkte)
+            }
+            
+            // Selbst-Kollision prüfen
+            FUER i VON 1 BIS schlangenLaenge - 1 {
+                WENN neuerKopfX == schlangeX[i] UND neuerKopfY == schlangeY[i] {
+                    spielLaeuft = FALSCH
+                    SCHREIBE("Game Over! Punkte: " + punkte)
+                }
+            }
+            
+            WENN spielLaeuft {
+                // Alte Positionen speichern
+                FUER i VON 0 BIS schlangenLaenge - 1 {
+                    tempX[i] = schlangeX[i]
+                    tempY[i] = schlangeY[i]
+                }
+                
+                // Kopf auf neue Position setzen
+                schlangeX[0] = neuerKopfX
+                schlangeY[0] = neuerKopfY
+                
+                // Körper folgt: jedes Segment bekommt die alte Position des vorherigen
+                FUER i VON 1 BIS schlangenLaenge - 1 {
+                    schlangeX[i] = tempX[i - 1]
+                    schlangeY[i] = tempY[i - 1]
+                }
+                
+                // Futter-Kollision prüfen
+                WENN neuerKopfX == futterX UND neuerKopfY == futterY {
+                    punkte = punkte + 10
+                    
+                    // Neues Segment am Ende hinzufügen (an der letzten Position)
+                    schlangeX[schlangenLaenge] = tempX[schlangenLaenge - 1]
+                    schlangeY[schlangenLaenge] = tempY[schlangenLaenge - 1]
+                    schlangenLaenge = schlangenLaenge + 1
+                    
+                    // Neues Futter
+                    futterX = ZUFALL(1, 38) * zellGroesse
+                    futterY = ZUFALL(1, 28) * zellGroesse
+                    
+                    // Etwas schneller werden
+                    WENN bewegungsIntervall > 4 {
+                        bewegungsIntervall = bewegungsIntervall - 1
+                    }
+                    
+                    SCHREIBE("Lecker! Punkte: " + punkte + " Länge: " + schlangenLaenge)
+                }
+            }
+        }
+    }
+    
+    // Futter zeichnen (rot)
+    ZEICHNE_RECHTECK(futterX + 2, futterY + 2, zellGroesse - 4, zellGroesse - 4, "#e94560")
+    ZEICHNE_RECHTECK(futterX + 5, futterY + 5, zellGroesse - 10, zellGroesse - 10, "#ff6b6b")
+    
+    // Schlange zeichnen
+    FUER i VON 0 BIS schlangenLaenge - 1 {
+        WENN i == 0 {
+            // Kopf (heller)
+            ZEICHNE_RECHTECK(schlangeX[i] + 1, schlangeY[i] + 1, zellGroesse - 2, zellGroesse - 2, "#4ecca3")
+            // Augen basierend auf Richtung
+            WENN richtungX == 1 {
+                ZEICHNE_RECHTECK(schlangeX[i] + 12, schlangeY[i] + 4, 4, 4, "#1a1a2e")
+                ZEICHNE_RECHTECK(schlangeX[i] + 12, schlangeY[i] + 12, 4, 4, "#1a1a2e")
+            }
+            WENN richtungX == -1 {
+                ZEICHNE_RECHTECK(schlangeX[i] + 4, schlangeY[i] + 4, 4, 4, "#1a1a2e")
+                ZEICHNE_RECHTECK(schlangeX[i] + 4, schlangeY[i] + 12, 4, 4, "#1a1a2e")
+            }
+            WENN richtungY == 1 {
+                ZEICHNE_RECHTECK(schlangeX[i] + 4, schlangeY[i] + 12, 4, 4, "#1a1a2e")
+                ZEICHNE_RECHTECK(schlangeX[i] + 12, schlangeY[i] + 12, 4, 4, "#1a1a2e")
+            }
+            WENN richtungY == -1 {
+                ZEICHNE_RECHTECK(schlangeX[i] + 4, schlangeY[i] + 4, 4, 4, "#1a1a2e")
+                ZEICHNE_RECHTECK(schlangeX[i] + 12, schlangeY[i] + 4, 4, 4, "#1a1a2e")
+            }
+        } SONST {
+            // Körper (dunkler, mit Gradient-Effekt)
+            VAR farbe = "#36b08a"
+            WENN i % 2 == 0 {
+                farbe = "#2d9974"
+            }
+            ZEICHNE_RECHTECK(schlangeX[i] + 2, schlangeY[i] + 2, zellGroesse - 4, zellGroesse - 4, farbe)
+        }
+    }
+    
+    // Punkte und Länge anzeigen
+    ZEICHNE_RECHTECK(10, 10, 200, 40, "#16213e")
+    ZEIGE_TEXT("Punkte: " + punkte + "  Länge: " + schlangenLaenge, 20, 38, "#ffffff", 18)
+    
+    // Game Over Anzeige
+    WENN NICHT spielLaeuft {
+        ZEICHNE_RECHTECK(250, 250, 300, 100, "#16213e")
+        ZEIGE_TEXT("GAME OVER!", 320, 290, "#e94560", 28)
+        ZEIGE_TEXT("Drücke LEERTASTE", 305, 325, "#8892b0", 18)
+    }
+}
+
+// Steuerung
+WENN_TASTE("hoch") {
+    WENN richtungY != 1 {
+        richtungX = 0
+        richtungY = -1
+    }
+}
+
+WENN_TASTE("runter") {
+    WENN richtungY != -1 {
+        richtungX = 0
+        richtungY = 1
+    }
+}
+
+WENN_TASTE("links") {
+    WENN richtungX != 1 {
+        richtungX = -1
+        richtungY = 0
+    }
+}
+
+WENN_TASTE("rechts") {
+    WENN richtungX != -1 {
+        richtungX = 1
+        richtungY = 0
+    }
+}
+
+// Neustart
+WENN_TASTE("leertaste") {
+    WENN NICHT spielLaeuft {
+        // Reset
+        schlangeX[0] = 400
+        schlangeX[1] = 380
+        schlangeX[2] = 360
+        schlangeY[0] = 300
+        schlangeY[1] = 300
+        schlangeY[2] = 300
+        schlangenLaenge = 3
+        richtungX = 1
+        richtungY = 0
+        punkte = 0
+        spielLaeuft = WAHR
+        frameZaehler = 0
+        bewegungsIntervall = 8
+        futterX = ZUFALL(1, 38) * zellGroesse
+        futterY = ZUFALL(1, 28) * zellGroesse
+        SCHREIBE("Neues Spiel gestartet!")
+    }
+}

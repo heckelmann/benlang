@@ -1,0 +1,99 @@
+// Fang den Stern - Ein einfaches BenLang Spiel
+// Bewege den Spieler mit den Pfeiltasten und sammle Sterne!
+
+SPIEL "Fang den Stern"
+
+// Spielvariablen
+VAR spielerX = 400
+VAR spielerY = 300
+VAR spielerGroesse = 30
+
+VAR sternX = 100
+VAR sternY = 100
+VAR sternGroesse = 20
+
+VAR punkte = 0
+VAR geschwindigkeit = 6
+
+// Beim Start
+WENN_START {
+    // Stern an zufällige Position setzen
+    sternX = ZUFALL(50, 750)
+    sternY = ZUFALL(50, 550)
+    SCHREIBE("Spiel gestartet! Fange die Sterne!")
+}
+
+// Jeden Frame ausführen
+WENN_IMMER {
+    // Hintergrund zeichnen
+    ZEICHNE_RECHTECK(0, 0, 800, 600, "#1a1a2e")
+    
+    // Sterne im Hintergrund (Dekoration)
+    ZEICHNE_KREIS(100, 50, 2, "#ffffff")
+    ZEICHNE_KREIS(200, 120, 2, "#ffffff")
+    ZEICHNE_KREIS(350, 80, 2, "#ffffff")
+    ZEICHNE_KREIS(500, 150, 2, "#ffffff")
+    ZEICHNE_KREIS(650, 60, 2, "#ffffff")
+    ZEICHNE_KREIS(720, 180, 2, "#ffffff")
+    
+    // Bewegung mit Pfeiltasten
+    WENN TASTE_GEDRUECKT("links") {
+        spielerX = spielerX - geschwindigkeit
+    }
+    WENN TASTE_GEDRUECKT("rechts") {
+        spielerX = spielerX + geschwindigkeit
+    }
+    WENN TASTE_GEDRUECKT("hoch") {
+        spielerY = spielerY - geschwindigkeit
+    }
+    WENN TASTE_GEDRUECKT("runter") {
+        spielerY = spielerY + geschwindigkeit
+    }
+    
+    // Spieler im Spielfeld halten
+    WENN spielerX < 0 {
+        spielerX = 0
+    }
+    WENN spielerX > 770 {
+        spielerX = 770
+    }
+    WENN spielerY < 0 {
+        spielerY = 0
+    }
+    WENN spielerY > 570 {
+        spielerY = 570
+    }
+    
+    // Kollision prüfen (einfache Distanzprüfung)
+    VAR abstandX = spielerX - sternX
+    VAR abstandY = spielerY - sternY
+    WENN abstandX < 0 {
+        abstandX = 0 - abstandX
+    }
+    WENN abstandY < 0 {
+        abstandY = 0 - abstandY
+    }
+    
+    WENN abstandX < 40 UND abstandY < 40 {
+        // Stern gefangen!
+        punkte = punkte + 1
+        sternX = ZUFALL(50, 750)
+        sternY = ZUFALL(50, 550)
+        SCHREIBE("Stern gefangen! Punkte: " + punkte)
+    }
+    
+    // Stern zeichnen (gelb)
+    ZEICHNE_KREIS(sternX, sternY, sternGroesse, "#ffd700")
+    ZEICHNE_KREIS(sternX, sternY, sternGroesse - 5, "#ffec8b")
+    
+    // Spieler zeichnen (grün)
+    ZEICHNE_KREIS(spielerX, spielerY, spielerGroesse, "#4ecca3")
+    ZEICHNE_KREIS(spielerX, spielerY, spielerGroesse - 8, "#7ee8c7")
+    
+    // Punkteanzeige
+    ZEICHNE_RECHTECK(10, 10, 150, 40, "#16213e")
+    ZEIGE_TEXT("Punkte: " + punkte, 20, 38, "#ffffff", 24)
+    
+    // Anleitung
+    ZEIGE_TEXT("Benutze die Pfeiltasten!", 280, 580, "#8892b0", 16)
+}

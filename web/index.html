@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BenLang - Programmieren für Kinder</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script defer src="/js/editor.js"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <h1 class="logo">🎮 BenLang</h1>
+        <span class="project-name" id="projectName">Mein Projekt</span>
+      </div>
+      <div class="header-center">
+        <button class="btn btn-primary" id="btnRun">
+          ▶ Starten
+        </button>
+        <button class="btn btn-secondary" id="btnStop">
+          ⬛ Stoppen
+        </button>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-icon" id="btnSave" title="Speichern (Strg+S)">
+          💾
+        </button>
+        <button class="btn btn-icon" id="btnHelp" title="Hilfe">
+          ❓
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Editor Panel -->
+      <div class="panel panel-editor">
+        <div class="panel-header">
+          <span>Code</span>
+        </div>
+        <div class="editor-container" id="editorContainer"></div>
+      </div>
+
+      <!-- Resizer -->
+      <div class="resizer" id="resizer"></div>
+
+      <!-- Preview Panel -->
+      <div class="panel panel-preview">
+        <div class="panel-header">
+          <span>Vorschau</span>
+          <span class="game-title" id="gameTitle"></span>
+        </div>
+        <div class="canvas-container">
+          <canvas id="gameCanvas" width="800" height="600"></canvas>
+        </div>
+        <div class="console-container" id="consoleContainer">
+          <div class="console-header">Konsole</div>
+          <div class="console-output" id="consoleOutput"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- File Browser -->
+    <footer class="footer">
+      <div class="file-browser">
+        <div class="file-list" id="fileList">
+          <!-- Files will be loaded here -->
+        </div>
+        <button class="btn btn-small" id="btnNewFile" title="Neue Datei">
+          + Neu
+        </button>
+        <button class="btn btn-small" id="btnUploadImage" title="Bild hochladen">
+          🖼 Bild
+        </button>
+      </div>
+    </footer>
+
+    <!-- Help Modal -->
+    <div class="modal" id="helpModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>BenLang Hilfe</h2>
+          <button class="modal-close" id="closeHelp">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="help-full-link">
+            <a href="/hilfe.html" target="_blank" class="btn btn-primary">
+              📖 Vollständige Dokumentation öffnen
+            </a>
+          </div>
+          
+          <h3>Schnellreferenz</h3>
+          
+          <h4>Befehle</h4>
+          <table class="help-table">
+            <tr><td><code>VAR name = wert</code></td><td>Variable erstellen</td></tr>
+            <tr><td><code>FIGUR name = LADE_BILD("bild.png")</code></td><td>Figur laden</td></tr>
+            <tr><td><code>WENN bedingung { }</code></td><td>Wenn-Abfrage</td></tr>
+            <tr><td><code>SOLANGE bedingung { }</code></td><td>Solange-Schleife</td></tr>
+            <tr><td><code>FUER x VON 1 BIS 10 { }</code></td><td>Zählschleife</td></tr>
+            <tr><td><code>FUNKTION name() { }</code></td><td>Funktion erstellen</td></tr>
+          </table>
+          
+          <h4>Spiel-Befehle</h4>
+          <table class="help-table">
+            <tr><td><code>SPIEL "Name"</code></td><td>Spielname festlegen</td></tr>
+            <tr><td><code>WENN_START { }</code></td><td>Beim Spielstart</td></tr>
+            <tr><td><code>WENN_IMMER { }</code></td><td>Jeden Frame</td></tr>
+            <tr><td><code>WENN_TASTE("links") { }</code></td><td>Bei Tastendruck</td></tr>
+            <tr><td><code>WENN_KOLLISION(a, b) { }</code></td><td>Bei Kollision</td></tr>
+          </table>
+          
+          <h4>Zeichnen</h4>
+          <table class="help-table">
+            <tr><td><code>ZEIGE_TEXT("Hallo", x, y, farbe, größe)</code></td><td>Text anzeigen</td></tr>
+            <tr><td><code>ZEICHNE_RECHTECK(x, y, b, h, farbe)</code></td><td>Rechteck zeichnen</td></tr>
+            <tr><td><code>ZEICHNE_KREIS(x, y, radius, farbe)</code></td><td>Kreis zeichnen</td></tr>
+            <tr><td><code>ZEICHNE_LINIE(x1, y1, x2, y2, farbe)</code></td><td>Linie zeichnen</td></tr>
+          </table>
+          
+          <h4>Eingabe</h4>
+          <table class="help-table">
+            <tr><td><code>TASTE_GEDRUECKT("taste")</code></td><td>Taste gedrückt?</td></tr>
+            <tr><td><code>MAUS_X()</code>, <code>MAUS_Y()</code></td><td>Mausposition</td></tr>
+            <tr><td><code>MAUS_GEDRUECKT()</code></td><td>Maustaste gedrückt?</td></tr>
+            <tr><td><code>ZUFALL(min, max)</code></td><td>Zufallszahl</td></tr>
+          </table>
+          
+          <h4>Tasten</h4>
+          <p><code>"links"</code>, <code>"rechts"</code>, <code>"hoch"</code>, <code>"runter"</code>, <code>"leertaste"</code>, <code>"a"</code>-<code>"z"</code></p>
+          
+          <h4>Figur-Eigenschaften</h4>
+          <table class="help-table">
+            <tr><td><code>figur.x</code>, <code>figur.y</code></td><td>Position</td></tr>
+            <tr><td><code>figur.breite</code>, <code>figur.hoehe</code></td><td>Größe</td></tr>
+            <tr><td><code>figur.drehung</code></td><td>Drehung in Grad</td></tr>
+            <tr><td><code>figur.sichtbar</code></td><td>Sichtbar (WAHR/FALSCH)</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Upload Modal -->
+    <div class="modal" id="uploadModal">
+      <div class="modal-content modal-small">
+        <div class="modal-header">
+          <h2>Bild hochladen</h2>
+          <button class="modal-close" id="closeUpload">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="file" id="imageInput" accept="image/*">
+          <p class="hint">PNG oder JPG Bilder (max. 1MB)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Runtime -->
+  <script src="/js/runtime/benlang-runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+// Breakout - Das klassische Steinbrecher-Spiel
+// Benutze die Pfeiltasten um den Schläger zu bewegen!
+
+SPIEL "Breakout"
+
+// Spielfeld
+VAR feldBreite = 800
+VAR feldHoehe = 600
+
+// Schläger
+VAR schlaegerX = 350
+VAR schlaegerY = 550
+VAR schlaegerBreite = 100
+VAR schlaegerHoehe = 15
+VAR schlaegerSpeed = 12
+
+// Ball
+VAR ballX = 400
+VAR ballY = 400
+VAR ballRadius = 10
+VAR ballSpeedX = 4
+VAR ballSpeedY = -4
+
+// Steine (als Arrays)
+VAR steinX = []
+VAR steinY = []
+VAR steinAktiv = []
+VAR steinFarbe = []
+VAR steinBreite = 70
+VAR steinHoehe = 25
+VAR steinAbstand = 5
+VAR anzahlSpalten = 10
+VAR anzahlReihen = 5
+
+// Spielstatus
+VAR punkte = 0
+VAR leben = 3
+VAR spielLaeuft = WAHR
+VAR gewonnen = FALSCH
+VAR steineUebrig = 50
+
+// Farben für die Reihen
+VAR farben = ["#e94560", "#f39c12", "#2ecc71", "#3498db", "#9b59b6"]
+
+WENN_START {
+    // Steine initialisieren
+    VAR index = 0
+    FUER reihe VON 0 BIS anzahlReihen - 1 {
+        FUER spalte VON 0 BIS anzahlSpalten - 1 {
+            steinX[index] = 40 + spalte * (steinBreite + steinAbstand)
+            steinY[index] = 60 + reihe * (steinHoehe + steinAbstand)
+            steinAktiv[index] = WAHR
+            steinFarbe[index] = farben[reihe]
+            index = index + 1
+        }
+    }
+    steineUebrig = anzahlSpalten * anzahlReihen
+    SCHREIBE("Breakout gestartet! Benutze die Pfeiltasten!")
+}
+
+WENN_IMMER {
+    // Hintergrund
+    ZEICHNE_RECHTECK(0, 0, feldBreite, feldHoehe, "#1a1a2e")
+    
+    WENN spielLaeuft {
+        // Schläger-Steuerung
+        WENN TASTE_GEDRUECKT("links") {
+            schlaegerX = schlaegerX - schlaegerSpeed
+            WENN schlaegerX < 0 {
+                schlaegerX = 0
+            }
+        }
+        WENN TASTE_GEDRUECKT("rechts") {
+            schlaegerX = schlaegerX + schlaegerSpeed
+            WENN schlaegerX > feldBreite - schlaegerBreite {
+                schlaegerX = feldBreite - schlaegerBreite
+            }
+        }
+        
+        // Ball bewegen
+        ballX = ballX + ballSpeedX
+        ballY = ballY + ballSpeedY
+        
+        // Wand-Kollision (links/rechts)
+        WENN ballX - ballRadius < 0 {
+            ballX = ballRadius
+            ballSpeedX = 0 - ballSpeedX
+        }
+        WENN ballX + ballRadius > feldBreite {
+            ballX = feldBreite - ballRadius
+            ballSpeedX = 0 - ballSpeedX
+        }
+        
+        // Wand-Kollision (oben)
+        WENN ballY - ballRadius < 0 {
+            ballY = ballRadius
+            ballSpeedY = 0 - ballSpeedY
+        }
+        
+        // Ball unten (Leben verlieren)
+        WENN ballY + ballRadius > feldHoehe {
+            leben = leben - 1
+            WENN leben <= 0 {
+                spielLaeuft = FALSCH
+                SCHREIBE("Game Over! Endpunktzahl: " + punkte)
+            } SONST {
+                // Ball zurücksetzen
+                ballX = schlaegerX + schlaegerBreite / 2
+                ballY = schlaegerY - ballRadius - 5
+                ballSpeedX = 4
+                ballSpeedY = -4
+                SCHREIBE("Leben verloren! Noch " + leben + " Leben übrig.")
+            }
+        }
+        
+        // Schläger-Kollision
+        WENN ballY + ballRadius >= schlaegerY UND ballY + ballRadius <= schlaegerY + schlaegerHoehe {
+            WENN ballX >= schlaegerX UND ballX <= schlaegerX + schlaegerBreite {
+                ballY = schlaegerY - ballRadius
+                ballSpeedY = 0 - ballSpeedY
+                
+                // Winkel basierend auf Aufprallposition
+                VAR aufprallPunkt = (ballX - schlaegerX) / schlaegerBreite
+                ballSpeedX = (aufprallPunkt - 0.5) * 10
+                
+                // Mindestgeschwindigkeit
+                WENN ballSpeedX > -2 UND ballSpeedX < 2 {
+                    WENN ballSpeedX < 0 {
+                        ballSpeedX = -2
+                    } SONST {
+                        ballSpeedX = 2
+                    }
+                }
+            }
+        }
+        
+        // Stein-Kollision
+        FUER i VON 0 BIS (anzahlSpalten * anzahlReihen) - 1 {
+            WENN steinAktiv[i] {
+                // Einfache AABB-Kollision
+                WENN ballX + ballRadius > steinX[i] UND ballX - ballRadius < steinX[i] + steinBreite {
+                    WENN ballY + ballRadius > steinY[i] UND ballY - ballRadius < steinY[i] + steinHoehe {
+                        // Stein zerstören
+                        steinAktiv[i] = FALSCH
+                        steineUebrig = steineUebrig - 1
+                        punkte = punkte + 10
+                        
+                        // Ball abprallen
+                        ballSpeedY = 0 - ballSpeedY
+                        
+                        WENN steineUebrig <= 0 {
+                            spielLaeuft = FALSCH
+                            gewonnen = WAHR
+                            SCHREIBE("Gewonnen! Endpunktzahl: " + punkte)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Steine zeichnen
+    FUER i VON 0 BIS (anzahlSpalten * anzahlReihen) - 1 {
+        WENN steinAktiv[i] {
+            // Stein-Körper
+            ZEICHNE_RECHTECK(steinX[i], steinY[i], steinBreite, steinHoehe, steinFarbe[i])
+            // Highlight oben
+            ZEICHNE_RECHTECK(steinX[i], steinY[i], steinBreite, 4, "#ffffff33")
+        }
+    }
+    
+    // Schläger zeichnen
+    ZEICHNE_RECHTECK(schlaegerX, schlaegerY, schlaegerBreite, schlaegerHoehe, "#4ecca3")
+    ZEICHNE_RECHTECK(schlaegerX, schlaegerY, schlaegerBreite, 4, "#7fffcc")
+    
+    // Ball zeichnen
+    ZEICHNE_KREIS(ballX, ballY, ballRadius, "#ffffff")
+    ZEICHNE_KREIS(ballX - 3, ballY - 3, 3, "#aaaaaa")
+    
+    // UI - Punkte und Leben
+    ZEICHNE_RECHTECK(10, 10, 150, 35, "#16213e")
+    ZEIGE_TEXT("Punkte: " + punkte, 20, 35, "#ffffff", 18)
+    
+    ZEICHNE_RECHTECK(feldBreite - 130, 10, 120, 35, "#16213e")
+    ZEIGE_TEXT("Leben: " + leben, feldBreite - 120, 35, "#e94560", 18)
+    
+    // Game Over oder Gewonnen Anzeige
+    WENN NICHT spielLaeuft {
+        ZEICHNE_RECHTECK(250, 250, 300, 120, "#16213e")
+        WENN gewonnen {
+            ZEIGE_TEXT("GEWONNEN!", 315, 295, "#4ecca3", 32)
+        } SONST {
+            ZEIGE_TEXT("GAME OVER", 310, 295, "#e94560", 32)
+        }
+        ZEIGE_TEXT("Punkte: " + punkte, 350, 330, "#ffffff", 20)
+        ZEIGE_TEXT("LEERTASTE zum Neustart", 295, 360, "#8892b0", 16)
+    }
+}
+
+// Neustart
+WENN_TASTE("leertaste") {
+    WENN NICHT spielLaeuft {
+        // Alles zurücksetzen
+        schlaegerX = 350
+        ballX = 400
+        ballY = 400
+        ballSpeedX = 4
+        ballSpeedY = -4
+        punkte = 0
+        leben = 3
+        spielLaeuft = WAHR
+        gewonnen = FALSCH
+        
+        // Steine zurücksetzen
+        VAR index = 0
+        FUER reihe VON 0 BIS anzahlReihen - 1 {
+            FUER spalte VON 0 BIS anzahlSpalten - 1 {
+                steinAktiv[index] = WAHR
+                index = index + 1
+            }
+        }
+        steineUebrig = anzahlSpalten * anzahlReihen
+        
+        SCHREIBE("Neues Spiel gestartet!")
+    }
+}

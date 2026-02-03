@@ -1,0 +1,176 @@
+// Namens-Quiz - Ein interaktives Mathe-Quiz mit Texteingabe
+// Zeigt die Verwendung der FRAGE() Funktion
+
+SPIEL "Namens-Quiz"
+
+// Spieler-Daten
+VAR spielerName = ""
+VAR spielerAlter = ""
+
+// Quiz-Status
+VAR punkte = 0
+VAR fragenBeantwortet = 0
+VAR maxFragen = 5
+VAR aktuelleAntwort = ""
+VAR richtigeAntwort = ""
+VAR frageText = ""
+VAR zeigeErgebnis = FALSCH
+VAR ergebnisText = ""
+VAR spielGestartet = FALSCH
+VAR spielBeendet = FALSCH
+
+// Aktuelle Rechnung
+VAR zahl1 = 0
+VAR zahl2 = 0
+
+// Animation
+VAR sternX = [100, 200, 300, 400, 500, 600, 700]
+VAR sternY = [50, 150, 80, 120, 60, 140, 90]
+VAR sternPhase = 0
+
+WENN_START {
+    // Spieler begrüßen und nach Namen fragen
+    spielerName = FRAGE("Willkommen! Wie heisst du?")
+    spielerAlter = FRAGE("Hallo " + spielerName + "! Wie alt bist du?")
+    
+    SCHREIBE("Spieler: " + spielerName + ", Alter: " + spielerAlter)
+    
+    spielGestartet = WAHR
+    
+    // Erste Frage generieren
+    zahl1 = ZUFALL(1, 10)
+    zahl2 = ZUFALL(1, 10)
+    frageText = "Was ist " + zahl1 + " + " + zahl2 + "?"
+    richtigeAntwort = "" + (zahl1 + zahl2)
+}
+
+WENN_IMMER {
+    // Hintergrund mit Verlauf-Effekt
+    ZEICHNE_RECHTECK(0, 0, 800, 600, "#0f0f23")
+    ZEICHNE_RECHTECK(0, 0, 800, 200, "#1a1a3e")
+    
+    // Animierte Sterne im Hintergrund
+    sternPhase = sternPhase + 0.05
+    FUER i VON 0 BIS 6 {
+        VAR helligkeit = 150 + RUNDEN(50 * SINUS(sternPhase + i))
+        ZEICHNE_KREIS(sternX[i], sternY[i], 3, "#ffff88")
+    }
+    
+    WENN spielGestartet UND NICHT spielBeendet {
+        // Titel
+        ZEIGE_TEXT("Mathe-Quiz fuer " + spielerName, 220, 50, "#4ecca3", 28)
+        
+        // Punkte-Anzeige
+        ZEICHNE_RECHTECK(600, 80, 180, 60, "#16213e")
+        ZEIGE_TEXT("Punkte: " + punkte, 620, 115, "#ffffff", 20)
+        ZEIGE_TEXT("Frage " + (fragenBeantwortet + 1) + "/" + maxFragen, 620, 135, "#888888", 14)
+        
+        // Frage-Box
+        ZEICHNE_RECHTECK(100, 180, 600, 120, "#1e3a5f")
+        ZEICHNE_RECHTECK(105, 185, 590, 110, "#16213e")
+        ZEIGE_TEXT(frageText, 300, 250, "#ffffff", 32)
+        
+        // Anleitung
+        ZEIGE_TEXT("Druecke LEERTASTE um zu antworten!", 240, 350, "#4ecca3", 18)
+        
+        // Ergebnis-Anzeige
+        WENN zeigeErgebnis {
+            ZEICHNE_RECHTECK(200, 400, 400, 80, "#16213e")
+            ZEIGE_TEXT(ergebnisText, 250, 450, "#ffffff", 22)
+        }
+    }
+    
+    // Spiel beendet
+    WENN spielBeendet {
+        ZEICHNE_RECHTECK(150, 150, 500, 300, "#16213e")
+        ZEICHNE_RECHTECK(155, 155, 490, 290, "#1e3a5f")
+        
+        ZEIGE_TEXT("Quiz beendet!", 300, 200, "#4ecca3", 32)
+        ZEIGE_TEXT("Glueckwunsch, " + spielerName + "!", 250, 260, "#ffffff", 24)
+        ZEIGE_TEXT("Deine Punkte: " + punkte + " von " + (maxFragen * 10), 260, 310, "#ffffff", 22)
+        
+        // Bewertung
+        VAR prozent = (punkte * 100) / (maxFragen * 10)
+        VAR bewertung = ""
+        WENN prozent >= 80 {
+            bewertung = "Super gemacht!"
+            ZEIGE_TEXT(bewertung, 290, 370, "#4ecca3", 24)
+        } SONST WENN prozent >= 50 {
+            bewertung = "Gut gemacht!"
+            ZEIGE_TEXT(bewertung, 300, 370, "#f39c12", 24)
+        } SONST {
+            bewertung = "Uebe weiter!"
+            ZEIGE_TEXT(bewertung, 300, 370, "#e94560", 24)
+        }
+        
+        ZEIGE_TEXT("Druecke R fuer ein neues Spiel", 260, 420, "#888888", 16)
+    }
+    
+    // Warte-Bildschirm vor Start
+    WENN NICHT spielGestartet {
+        ZEIGE_TEXT("Lade...", 360, 300, "#ffffff", 24)
+    }
+}
+
+// Antwort eingeben
+WENN_TASTE("leertaste") {
+    WENN spielGestartet UND NICHT spielBeendet UND NICHT zeigeErgebnis {
+        aktuelleAntwort = FRAGE(frageText)
+        
+        // Antwort prüfen
+        WENN aktuelleAntwort == richtigeAntwort {
+            punkte = punkte + 10
+            ergebnisText = "Richtig! +10 Punkte"
+            SCHREIBE("Richtig! " + aktuelleAntwort + " = " + richtigeAntwort)
+        } SONST {
+            ergebnisText = "Falsch! Richtig war: " + richtigeAntwort
+            SCHREIBE("Falsch! " + aktuelleAntwort + " != " + richtigeAntwort)
+        }
+        
+        zeigeErgebnis = WAHR
+        fragenBeantwortet = fragenBeantwortet + 1
+    }
+}
+
+// Nächste Frage oder Spiel beenden
+WENN_TASTE("eingabe") {
+    WENN zeigeErgebnis {
+        zeigeErgebnis = FALSCH
+        
+        WENN fragenBeantwortet >= maxFragen {
+            spielBeendet = WAHR
+            SCHREIBE("Spiel beendet! Endpunktzahl: " + punkte)
+        } SONST {
+            // Neue Frage generieren
+            zahl1 = ZUFALL(1, 10)
+            zahl2 = ZUFALL(1, 10)
+            
+            // Manchmal Subtraktion (wenn zahl1 > zahl2)
+            WENN ZUFALL(1, 3) == 1 UND zahl1 > zahl2 {
+                frageText = "Was ist " + zahl1 + " - " + zahl2 + "?"
+                richtigeAntwort = "" + (zahl1 - zahl2)
+            } SONST {
+                frageText = "Was ist " + zahl1 + " + " + zahl2 + "?"
+                richtigeAntwort = "" + (zahl1 + zahl2)
+            }
+        }
+    }
+}
+
+// Neues Spiel starten
+WENN_TASTE("r") {
+    WENN spielBeendet {
+        punkte = 0
+        fragenBeantwortet = 0
+        spielBeendet = FALSCH
+        zeigeErgebnis = FALSCH
+        
+        // Neue erste Frage
+        zahl1 = ZUFALL(1, 10)
+        zahl2 = ZUFALL(1, 10)
+        frageText = "Was ist " + zahl1 + " + " + zahl2 + "?"
+        richtigeAntwort = "" + (zahl1 + zahl2)
+        
+        SCHREIBE("Neues Spiel gestartet!")
+    }
+}
