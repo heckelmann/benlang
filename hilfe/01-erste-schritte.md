@@ -1,3 +1,9 @@
+---
+layout: default
+title: Erste Schritte
+nav_order: 1
+---
+
 # Erste Schritte mit BenLang
 
 Willkommen bei BenLang! Hier lernst du, wie du dein erstes Spiel programmierst.

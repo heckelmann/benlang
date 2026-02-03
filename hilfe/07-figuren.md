@@ -1,3 +1,9 @@
+---
+layout: default
+title: Figuren
+nav_order: 7
+---
+
 # Figuren - Bilder laden und bewegen
 
 Anstatt alles selbst zu zeichnen, kannst du Bilder laden und als Spielfiguren benutzen!

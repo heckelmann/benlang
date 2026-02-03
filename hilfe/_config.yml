@@ -1,0 +1,23 @@
+title: BenLang Hilfe
+description: Dokumentation für BenLang - Die Programmiersprache für Kinder
+theme: jekyll-theme-cayman
+
+# Navigation und Markdown
+markdown: kramdown
+highlighter: rouge
+
+# Für bessere URLs
+permalink: /:title/
+
+# Ausschließen von Dateien
+exclude:
+  - README.md
+  - LICENSE
+
+# Reihenfolge der Seiten
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"

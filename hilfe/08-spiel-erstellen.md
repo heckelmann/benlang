@@ -1,3 +1,9 @@
+---
+layout: default
+title: Spiel erstellen
+nav_order: 8
+---
+
 # Dein eigenes Spiel erstellen
 
 Jetzt weißt du alles, um dein eigenes Spiel zu bauen! Hier ist eine Schritt-für-Schritt-Anleitung.

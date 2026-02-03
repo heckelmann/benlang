@@ -1,3 +1,9 @@
+---
+layout: default
+title: Schleifen
+nav_order: 5
+---
+
 # Schleifen - Dinge wiederholen
 
 Schleifen sind super praktisch, wenn du etwas mehrmals machen willst, ohne den Code mehrmals zu schreiben!

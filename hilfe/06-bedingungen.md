@@ -1,3 +1,9 @@
+---
+layout: default
+title: Bedingungen
+nav_order: 6
+---
+
 # Bedingungen - Wenn-Dann Entscheidungen
 
 Mit Bedingungen kann dein Programm Entscheidungen treffen!

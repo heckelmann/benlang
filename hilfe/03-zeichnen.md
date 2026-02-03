@@ -1,3 +1,9 @@
+---
+layout: default
+title: Zeichnen
+nav_order: 3
+---
+
 # Zeichnen - Male auf dem Bildschirm
 
 In BenLang kannst du Formen, Text und Bilder auf den Bildschirm malen!

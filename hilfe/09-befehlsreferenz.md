@@ -1,3 +1,9 @@
+---
+layout: default
+title: Befehlsreferenz
+nav_order: 9
+---
+
 # BenLang Befehlsreferenz
 
 Eine komplette Liste aller BenLang-Befehle zum Nachschlagen.

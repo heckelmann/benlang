@@ -1,3 +1,9 @@
+---
+layout: default
+title: Steuerung
+nav_order: 4
+---
+
 # Steuerung - Tastatur und Maus
 
 Jetzt lernst du, wie du dein Spiel mit Tastatur und Maus steuern kannst!

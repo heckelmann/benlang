@@ -1,3 +1,9 @@
+---
+layout: default
+title: Variablen
+nav_order: 2
+---
+
 # Variablen - Dinge merken
 
 Variablen sind wie Schubladen, in denen du Sachen aufbewahren kannst. Du gibst der Schublade einen Namen und legst etwas hinein.
