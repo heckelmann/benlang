@@ -1,0 +1,59 @@
+// Figuren löschen - Ein Beispiel für LOESCHEN
+2: // Sammle die Sterne, um sie vom Bildschirm zu entfernen!
+3: 
+4: SPIEL "Sterne Löschen"
+5: 
+6: FIGUR spieler = LADE_BILD("spieler.png")
+7: FIGUR stern1 = LADE_BILD("stern.png")
+8: FIGUR stern2 = LADE_BILD("stern.png")
+9: FIGUR stern3 = LADE_BILD("stern.png")
+10: 
+11: VAR punkte = 0
+12: 
+13: WENN_START {
+14:     spieler.x = 400
+15:     spieler.y = 300
+16:     
+17:     stern1.x = 100
+18:     stern1.y = 100
+19:     
+20:     stern2.x = 700
+21:     stern2.y = 100
+22:     
+23:     stern3.x = 400
+24:     stern3.y = 500
+25:     
+26:     SCHREIBE("Sammle alle Sterne mit dem Spieler!")
+27: }
+28: 
+29: WENN_IMMER {
+30:     ZEICHNE_RECHTECK(0, 0, 800, 600, "#1a1a2e")
+31:     
+32:     // Steuerung
+33:     WENN TASTE_GEDRUECKT("links") { spieler.x = spieler.x - 5 }
+34:     WENN TASTE_GEDRUECKT("rechts") { spieler.x = spieler.x + 5 }
+35:     WENN TASTE_GEDRUECKT("hoch") { spieler.y = spieler.y - 5 }
+36:     WENN TASTE_GEDRUECKT("runter") { spieler.y = spieler.y + 5 }
+37:     
+38:     WENN punkte == 3 {
+39:         ZEIGE_TEXT("Alle Sterne gelöscht!", 250, 300, "#ffffff", 30)
+40:     }
+41: }
+42: 
+43: WENN_KOLLISION(spieler, stern1) {
+44:     LOESCHEN(stern1)
+45:     punkte = punkte + 1
+46:     SCHREIBE("Stern 1 gelöscht!")
+47: }
+48: 
+49: WENN_KOLLISION(spieler, stern2) {
+50:     stern2.LOESCHEN()
+51:     punkte = punkte + 1
+52:     SCHREIBE("Stern 2 gelöscht!")
+53: }
+54: 
+55: WENN_KOLLISION(spieler, stern3) {
+56:     LOESCHEN(stern3)
+57:     punkte = punkte + 1
+58:     SCHREIBE("Stern 3 gelöscht!")
+59: }

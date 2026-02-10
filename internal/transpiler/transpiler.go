@@ -338,6 +338,8 @@ func (t *Transpiler) transpileCallExpression(ce *parser.CallExpression) string {
 		"KOSINUS":          "Math.cos",
 		"SCHREIBE":         "console.log",
 		"FRAGE":            "await _benlang.frage",
+		"LOESCHEN":         "_benlang.loescheFigur",
+		"LÖSCHEN":          "_benlang.loescheFigur",
 	}
 
 	args := make([]string, len(ce.Arguments))

@@ -225,6 +225,7 @@ spieler.sichtbar = WAHR
 | Funktion | Beschreibung |
 |----------|--------------|
 | `LADE_BILD(pfad)` | Lädt ein Bild und gibt eine Figur zurück |
+| `LOESCHEN(figur)` | Entfernt eine Figur aus dem Spiel |
 | `SPIELE_TON(pfad)` | Spielt eine Sound-Datei ab |
 
 ### Mathematik
