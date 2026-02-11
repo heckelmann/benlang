@@ -98,6 +98,22 @@ WENN_TASTE("s") {
 }
 ```
 
+## Figur löschen
+
+Wenn du eine Figur komplett aus dem Spiel entfernen möchtest (zum Beispiel wenn ein Gegner besiegt wurde), kannst du `LOESCHEN` benutzen:
+
+```benlang
+WENN_KOLLISION(spieler, gegner) {
+    LOESCHEN(gegner)
+    SCHREIBE("Gegner besiegt!")
+}
+```
+
+Du kannst es auch so schreiben: `gegner.LOESCHEN()`.
+
+Beachte: Eine gelöschte Figur kann nicht mehr angezeigt oder für Kollisionen benutzt werden. Wenn du eine Figur nur kurz unsichtbar machen willst, benutze lieber `.sichtbar = FALSCH`.
+
+
 ## Figur drehen
 
 ```benlang

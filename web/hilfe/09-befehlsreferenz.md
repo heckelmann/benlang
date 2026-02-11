@@ -279,23 +279,30 @@ Lädt ein Bild aus dem Projektordner.
 
 ### BILD_WECHSELN
 ```benlang
-BILD_WECHSELN(figur, "neues-bild.png")
-```
-Wechselt das Bild einer Figur zur Laufzeit.
-- `figur` - Die Figur deren Bild gewechselt werden soll
-- `"neues-bild.png"` - Pfad zum neuen Bild
-
-**Beispiel:**
-```benlang
-FIGUR spieler = LADE_BILD("spieler-stehen.png")
-
-WENN_TASTE("rechts") {
-    BILD_WECHSELN(spieler, "spieler-laufen.png")
-    spieler.x = spieler.x + 5
-}
-```
-
-### SPIELE_TON
+VAR spieler = LADE_BILD("spieler-stehen.png")
+ 
+ WENN_TASTE("rechts") {
+     BILD_WECHSELN(spieler, "spieler-laufen.png")
+     spieler.x = spieler.x + 5
+ }
+ ```
+ 
+ ### LOESCHEN
+ ```benlang
+ LOESCHEN(figur)
+ ```
+ Entfernt eine Figur komplett aus dem Spiel.
+ - `figur` - Die Figur die gelöscht werden soll
+ - Kann auch so geschrieben werden: `figur.LOESCHEN()`
+ 
+ **Beispiel:**
+ ```benlang
+ WENN_KOLLISION(spieler, gegner) {
+     LOESCHEN(gegner)
+ }
+ ```
+ 
+ ### SPIELE_TON
 ```benlang
 SPIELE_TON("sound.mp3")
 ```

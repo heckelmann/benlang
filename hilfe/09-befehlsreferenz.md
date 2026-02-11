@@ -301,6 +301,21 @@ WENN_TASTE("rechts") {
 }
 ```
 
+### LOESCHEN
+```benlang
+LOESCHEN(figur)
+```
+Entfernt eine Figur komplett aus dem Spiel.
+- `figur` - Die Figur die gelöscht werden soll
+- Kann auch so geschrieben werden: `figur.LOESCHEN()`
+
+**Beispiel:**
+```benlang
+WENN_KOLLISION(spieler, gegner) {
+    LOESCHEN(gegner)
+}
+```
+
 ### SPIELE_TON
 ```benlang
 SPIELE_TON("sound.mp3")
