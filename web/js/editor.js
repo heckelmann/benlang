@@ -25,8 +25,504 @@ const builtinFunctions = [
   'LADE_BILD', 'BILD_WECHSELN', 'SPIELE_TON', 'ZEIGE_TEXT', 'ZEICHNE_RECHTECK', 'ZEICHNE_KREIS',
   'ZEICHNE_LINIE', 'TASTE_GEDRUECKT', 'TASTE_GEDRÜCKT', 'MAUS_X', 'MAUS_Y',
   'MAUS_GEDRUECKT', 'MAUS_GEDRÜCKT', 'ZUFALL', 'RUNDEN', 'ABSOLUT',
-  'WURZEL', 'SINUS', 'KOSINUS', 'SCHREIBE', 'FRAGE', 'WARTE'
+  'WURZEL', 'SINUS', 'KOSINUS', 'SCHREIBE', 'FRAGE', 'WARTE',
+  'LOESCHEN', 'LADE_LEVEL', 'GEHE_ZU', 'DREHE', 'SKALIERE'
 ];
+
+const builtinFunctionSignatures = {
+  'LADE_BILD': { params: '(pfad)', desc: 'Lädt ein Bild und gibt eine Figur zurück' },
+  'BILD_WECHSELN': { params: '(figur, bild)', desc: 'Wechselt das Bild einer Figur' },
+  'SPIELE_TON': { params: '(pfad)', desc: 'Spielt eine Sound-Datei ab' },
+  'ZEIGE_TEXT': { params: '(text, x, y, farbe, groesse)', desc: 'Zeigt Text an' },
+  'ZEICHNE_RECHTECK': { params: '(x, y, breite, hoehe, farbe)', desc: 'Zeichnet ein Rechteck' },
+  'ZEICHNE_KREIS': { params: '(x, y, radius, farbe)', desc: 'Zeichnet einen Kreis' },
+  'ZEICHNE_LINIE': { params: '(x1, y1, x2, y2, farbe)', desc: 'Zeichnet eine Linie' },
+  'TASTE_GEDRUECKT': { params: '(taste)', desc: 'Gibt WAHR zurück wenn Taste gedrückt ist' },
+  'MAUS_X': { params: '()', desc: 'X-Position der Maus' },
+  'MAUS_Y': { params: '()', desc: 'Y-Position der Maus' },
+  'MAUS_GEDRUECKT': { params: '()', desc: 'Gibt WAHR zurück wenn Maustaste gedrückt' },
+  'ZUFALL': { params: '(min, max)', desc: 'Zufällige Ganzzahl zwischen min und max' },
+  'RUNDEN': { params: '(zahl)', desc: 'Rundet zur nächsten Ganzzahl' },
+  'ABSOLUT': { params: '(zahl)', desc: 'Gibt den positiven Wert zurück' },
+  'WURZEL': { params: '(zahl)', desc: 'Quadratwurzel der Zahl' },
+  'SINUS': { params: '(zahl)', desc: 'Sinus der Zahl (in Grad)' },
+  'KOSINUS': { params: '(zahl)', desc: 'Kosinus der Zahl (in Grad)' },
+  'SCHREIBE': { params: '(text)', desc: 'Schreibt Text in die Konsole' },
+  'FRAGE': { params: '(frage)', desc: 'Zeigt eine Eingabeaufforderung' },
+  'WARTE': { params: '(millisekunden)', desc: 'Wartet die angegebene Zeit' },
+  'LOESCHEN': { params: '(figur)', desc: 'Entfernt eine Figur aus dem Spiel' },
+  'LADE_LEVEL': { params: '(nummer)', desc: 'Lädt ein Level' },
+  'GEHE_ZU': { params: '(figur, x, y)', desc: 'Bewegt eine Figur zu einer Position' },
+  'DREHE': { params: '(figur, winkel)', desc: 'Dreht eine Figur' },
+  'SKALIERE': { params: '(figur, faktor)', desc: 'Skaliert eine Figur' }
+};
+
+const figurProperties = ['.x', '.y', '.breite', '.hoehe', '.sichtbar', '.drehung', '.geschwindigkeit'];
+
+// Symbol table for user-defined variables and figurs
+let symbolTable = {
+  variables: [],
+  figurs: [],
+  functions: [],
+  loopVariables: [],
+  currentFunction: null,
+  currentLoop: null,
+  braceDepth: 0
+};
+
+// Autocomplete state
+let autocompletePopup = null;
+let autocompleteItems = [];
+let selectedIndex = -1;
+let autocompleteTrigger = null;
+
+// Parse code to extract user-defined symbols
+function parseCodeForSymbols(code) {
+  const lines = code.split('\n');
+  const symbols = {
+    variables: [],
+    figurs: [],
+    functions: [],
+    loopVariables: [],
+    currentFunction: null,
+    currentLoop: null,
+    braceDepth: 0
+  };
+
+  lines.forEach((line, lineIndex) => {
+    const trimmed = line.trim();
+    const beforeBrace = symbols.braceDepth;
+
+    symbols.braceDepth += (line.match(/\{/g) || []).length;
+    symbols.braceDepth -= (line.match(/\}/g) || []).length;
+
+    const isGlobal = symbols.braceDepth === 0;
+    const wasInFunction = beforeBrace > 0 && symbols.currentFunction;
+    const isInFunction = symbols.braceDepth > 0 && symbols.currentFunction;
+
+    if (trimmed.startsWith('FUNKTION ')) {
+      const match = trimmed.match(/FUNKTION\s+(\w+)\s*\(([^)]*)\)/);
+      if (match) {
+        const params = match[2].split(',').map(p => p.trim()).filter(p => p);
+        symbols.currentFunction = {
+          name: match[1],
+          params,
+          line: lineIndex
+        };
+        symbols.functions.push(symbols.currentFunction);
+      }
+    }
+
+    if (trimmed.startsWith('FUER ') || trimmed.startsWith('FÜR ')) {
+      const match = trimmed.match(/F(?:ÜR|UER)\s+(\w+)\s+VON/);
+      if (match) {
+        symbols.currentLoop = { var: match[1], line: lineIndex };
+        symbols.loopVariables.push({ name: match[1], line: lineIndex });
+      }
+    }
+
+    if (trimmed === '}' && symbols.currentFunction && symbols.braceDepth === 0) {
+      symbols.currentFunction = null;
+    }
+    if (trimmed === '}' && symbols.currentLoop && symbols.braceDepth === 0) {
+      symbols.currentLoop = null;
+    }
+
+    if (symbols.braceDepth <= 1) {
+      const varMatch = line.match(/(?:VAR|VARIABLE)\s+(\w+)\s*=/);
+      if (varMatch) {
+        symbols.variables.push({ name: varMatch[1], line: lineIndex });
+      }
+
+      const figurMatch = line.match(/FIGUR\s+(\w+)\s*=/);
+      if (figurMatch) {
+        symbols.figurs.push({ name: figurMatch[1], line: lineIndex });
+      }
+    }
+
+    if (isInFunction && !wasInFunction) {
+      const params = symbols.currentFunction?.params || [];
+      params.forEach(param => {
+        if (!symbols.variables.find(v => v.name === param)) {
+          symbols.variables.push({ name: param, line: symbols.currentFunction.line, isParam: true });
+        }
+      });
+    }
+  });
+
+  return symbols;
+}
+
+// Get autocomplete trigger info
+function getAutocompleteTrigger(code, cursorPos) {
+  const beforeCursor = code.substring(0, cursorPos);
+  const afterCursor = code.substring(cursorPos);
+
+  const dotMatch = beforeCursor.match(/(\w*)\.(\w*)$/);
+  if (dotMatch && dotMatch[2] !== undefined) {
+    const baseIdentifier = dotMatch[1];
+    const partialProp = dotMatch[2];
+    return { type: 'property', baseIdentifier, partialProp };
+  }
+
+  const functionCallMatch = beforeCursor.match(/(\w+)\($/);
+  if (functionCallMatch) {
+    const funcName = functionCallMatch[1];
+    if (builtinFunctionSignatures[funcName]) {
+      return { type: 'functionCall', functionName: funcName };
+    }
+  }
+
+  const wordMatch = beforeCursor.match(/(\w{1,})$/);
+  if (wordMatch) {
+    return { type: 'word', partialWord: wordMatch[1] };
+  }
+
+  if (/[^a-zA-ZäöüÄÖÜß0-9_]$/.test(beforeCursor) && !afterCursor.startsWith('.')) {
+    return { type: 'trigger' };
+  }
+
+  return null;
+}
+
+// Filter completions based on trigger
+function getCompletions(trigger, symbols, partialWord) {
+  const completions = [];
+  const lowerPartial = partialWord?.toLowerCase() || '';
+
+  if (trigger.type === 'functionCall') {
+    const sig = builtinFunctionSignatures[trigger.functionName];
+    if (sig) {
+      completions.push({
+        type: 'function',
+        label: sig.params,
+        insertText: sig.params,
+        detail: sig.params,
+        documentation: sig.desc
+      });
+    }
+    return completions;
+  }
+
+  if (trigger.type === 'word' || trigger.type === 'trigger') {
+    keywords.forEach(kw => {
+      if (kw.toLowerCase().startsWith(lowerPartial)) {
+        completions.push({ type: 'keyword', label: kw, icon: 'KW' });
+      }
+    });
+
+    Object.keys(builtinFunctionSignatures).forEach(fn => {
+      if (fn.toLowerCase().startsWith(lowerPartial)) {
+        const sig = builtinFunctionSignatures[fn];
+        completions.push({
+          type: 'function',
+          label: fn + sig.params,
+          insertText: fn + sig.params,
+          detail: sig.params,
+          documentation: sig.desc
+        });
+      }
+    });
+
+    symbols.variables.forEach(v => {
+      if (v.name.toLowerCase().startsWith(lowerPartial)) {
+        completions.push({
+          type: 'variable',
+          label: v.name,
+          icon: v.isParam ? 'PR' : 'VR'
+        });
+      }
+    });
+
+    symbols.figurs.forEach(f => {
+      if (f.name.toLowerCase().startsWith(lowerPartial)) {
+        completions.push({ type: 'figur', label: f.name, icon: 'FG' });
+      }
+    });
+  }
+
+  if (trigger.type === 'property') {
+    const isFigur = symbols.figurs.some(f => f.name === trigger.baseIdentifier);
+    if (isFigur) {
+      figurProperties.forEach(prop => {
+        const propName = prop.substring(1);
+        if (propName.toLowerCase().startsWith(trigger.partialProp?.toLowerCase() || '')) {
+          completions.push({ type: 'property', label: prop, icon: 'PR' });
+        }
+      });
+    }
+  }
+
+  return completions;
+}
+
+// Create autocomplete popup
+function createAutocompletePopup() {
+  if (autocompletePopup) return;
+
+  const popup = document.createElement('div');
+  popup.id = 'autocompletePopup';
+  popup.className = 'autocomplete-popup';
+  popup.innerHTML = `
+    <div class="autocomplete-list" id="autocompleteList"></div>
+    <div class="autocomplete-footer">
+      <span><kbd>↑↓</kbd> Navigate</span>
+      <span><kbd>Enter</kbd> Select</span>
+      <span><kbd>Esc</kbd> Close</span>
+    </div>
+  `;
+  document.body.appendChild(popup);
+
+  autocompletePopup = popup;
+
+  popup.querySelectorAll('.autocomplete-list').forEach(list => {
+    list.addEventListener('click', (e) => {
+      const item = e.target.closest('.autocomplete-item');
+      if (item) {
+        const index = parseInt(item.dataset.index);
+        selectAutocompleteItem(index);
+      }
+    });
+  });
+}
+
+// Show autocomplete popup
+function showAutocompletePopup(completions, x, y) {
+  if (!autocompletePopup) {
+    createAutocompletePopup();
+  }
+
+  const list = autocompletePopup.querySelector('#autocompleteList');
+  list.innerHTML = '';
+
+  if (completions.length === 0) {
+    list.innerHTML = '<div class="autocomplete-no-match">Keine Vervollständigung</div>';
+    autocompletePopup.classList.add('show');
+    autocompleteItems = [];
+    selectedIndex = -1;
+    return;
+  }
+
+  autocompleteItems = completions;
+  selectedIndex = 0;
+
+  completions.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'autocomplete-item' + (index === 0 ? ' selected' : '');
+    div.dataset.index = index;
+
+    const iconClass = item.type.toLowerCase();
+    let iconText = item.type.charAt(0).toUpperCase();
+    if (item.type === 'function') iconText = 'FN';
+    if (item.type === 'variable') iconText = item.icon || 'VR';
+    if (item.type === 'figur') iconText = 'FG';
+    if (item.type === 'property') iconText = 'PR';
+
+    let detailHtml = '';
+    if (item.type === 'function' && item.detail) {
+      detailHtml = `<div class="detail function">${item.detail}</div>`;
+    }
+
+    div.innerHTML = `
+      <span class="icon ${iconClass}">${iconText}</span>
+      <div class="content">
+        <div class="label">${escapeHtml(item.label)}</div>
+        ${detailHtml}
+      </div>
+    `;
+    list.appendChild(div);
+  });
+
+  const maxX = window.innerWidth - 250;
+  const maxY = window.innerHeight - 100;
+
+  autocompletePopup.style.left = Math.min(x, maxX) + 'px';
+  autocompletePopup.style.top = Math.min(y, maxY) + 'px';
+  autocompletePopup.classList.add('show');
+}
+
+// Hide autocomplete popup
+function hideAutocompletePopup() {
+  if (autocompletePopup) {
+    autocompletePopup.classList.remove('show');
+    autocompleteItems = [];
+    selectedIndex = -1;
+    autocompleteTrigger = null;
+  }
+}
+
+// Update selected item in popup
+function updateAutocompleteSelection() {
+  const list = autocompletePopup?.querySelector('#autocompleteList');
+  if (!list || selectedIndex < 0 || selectedIndex >= autocompleteItems.length) return;
+
+  list.querySelectorAll('.autocomplete-item').forEach((item, index) => {
+    item.classList.toggle('selected', index === selectedIndex);
+  });
+
+  const selectedItem = list.children[selectedIndex];
+  if (selectedItem) {
+    selectedItem.scrollIntoView({ block: 'nearest' });
+  }
+}
+
+// Select autocomplete item
+function selectAutocompleteItem(index) {
+  if (index < 0 || index >= autocompleteItems.length) return;
+
+  const item = autocompleteItems[index];
+  if (!item || !editorTextarea) return;
+
+  const insertText = item.insertText || item.label;
+
+  const start = editorTextarea.selectionStart;
+  const end = editorTextarea.selectionEnd;
+
+  let insertStart = start;
+  let insertEnd = end;
+
+  if (autocompleteTrigger?.type === 'property') {
+    const beforeCursor = editorTextarea.value.substring(0, start);
+    const dotIndex = beforeCursor.lastIndexOf('.');
+    if (dotIndex >= 0) {
+      insertStart = dotIndex;
+    }
+  } else if (autocompleteTrigger?.type === 'functionCall') {
+    const beforeCursor = editorTextarea.value.substring(0, start);
+    const funcMatch = beforeCursor.match(/(\w+)\($/);
+    if (funcMatch) {
+      insertStart = start - funcMatch[1].length - 1;
+    }
+  } else if (autocompleteTrigger?.type === 'word') {
+    const beforeCursor = editorTextarea.value.substring(0, start);
+    const wordMatch = beforeCursor.match(/(\w+)$/);
+    if (wordMatch) {
+      const existingWord = wordMatch[1];
+      insertStart = start - existingWord.length;
+      if (item.type === 'function') {
+        const fnName = item.label.split('(')[0];
+        if (existingWord.toLowerCase() === fnName.toLowerCase()) {
+          insertText = item.label.substring(fnName.length);
+        }
+      }
+    }
+  }
+
+  const newValue = editorTextarea.value.substring(0, insertStart) + insertText + editorTextarea.value.substring(insertEnd);
+  editorTextarea.value = newValue;
+
+  const newCursorPos = insertStart + insertText.length;
+  editorTextarea.selectionStart = editorTextarea.selectionEnd = newCursorPos;
+
+  hideAutocompletePopup();
+
+  if (editor && typeof editor.refresh === 'function') {
+    editor.refresh();
+  }
+
+  editorTextarea.focus();
+}
+
+// Navigate autocomplete
+function navigateAutocomplete(direction) {
+  if (autocompleteItems.length === 0) return;
+
+  selectedIndex = (selectedIndex + direction + autocompleteItems.length) % autocompleteItems.length;
+  updateAutocompleteSelection();
+}
+
+// Get cursor pixel position for popup
+function getCursorPixelPosition() {
+  if (!editorTextarea) return { x: 0, y: 0 };
+
+  const cursorPos = editorTextarea.selectionStart;
+  const textBeforeCursor = editorTextarea.value.substring(0, cursorPos);
+  const lines = textBeforeCursor.split('\n');
+  const lineIndex = lines.length - 1;
+  const charIndex = lines[lineIndex].length;
+
+  const lineHeight = 22;
+  const charWidth = 9;
+
+  const lineNumbersWidth = 50;
+  const paddingLeft = 10;
+
+  const editorRect = editorTextarea.getBoundingClientRect();
+  const scrollLeft = editorTextarea.scrollLeft;
+  const scrollTop = editorTextarea.scrollTop;
+
+  return {
+    x: lineNumbersWidth + paddingLeft + (charIndex * charWidth) - scrollLeft,
+    y: editorRect.top - scrollTop + (lineIndex * lineHeight) + lineHeight + 35
+  };
+}
+
+// Handle autocomplete input
+function handleAutocompleteInput(e) {
+  if (!editorTextarea) return;
+
+  const code = editorTextarea.value;
+  const cursorPos = editorTextarea.selectionStart;
+
+  const trigger = getAutocompleteTrigger(code, cursorPos);
+
+  if (!trigger || (trigger.type === 'word' && trigger.partialWord.length < 2) || trigger.type === 'trigger') {
+    hideAutocompletePopup();
+    return;
+  }
+
+  symbolTable = parseCodeForSymbols(code);
+
+  let partialWord = '';
+  if (trigger.type === 'word') {
+    partialWord = trigger.partialWord;
+  } else if (trigger.type === 'property') {
+    partialWord = trigger.partialProp || '';
+  }
+
+  const completions = getCompletions(trigger, symbolTable, partialWord);
+
+  if (completions.length > 0) {
+    autocompleteTrigger = trigger;
+    const pos = getCursorPixelPosition();
+    showAutocompletePopup(completions, pos.x, pos.y);
+  } else {
+    hideAutocompletePopup();
+  }
+}
+
+// Handle keyboard for autocomplete
+function handleAutocompleteKeydown(e) {
+  if (!autocompletePopup?.classList.contains('show')) {
+    if (e.key === 'Escape') {
+      hideColorPicker();
+    }
+    return;
+  }
+
+  switch (e.key) {
+    case 'ArrowUp':
+      e.preventDefault();
+      navigateAutocomplete(-1);
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      navigateAutocomplete(1);
+      break;
+    case 'Enter':
+    case 'Tab':
+      e.preventDefault();
+      if (selectedIndex >= 0) {
+        selectAutocompleteItem(selectedIndex);
+      }
+      break;
+    case 'Escape':
+      hideAutocompletePopup();
+      break;
+    default:
+      break;
+  }
+}
 
 // Default BenLang code
 function getDefaultCode() {
@@ -134,10 +630,12 @@ function highlightSegment(text) {
         ident += text[i];
         i++;
       }
-      const lower = ident.toLowerCase();
+       const lower = ident.toLowerCase();
+      const lowerUmlauts = lower.replace(/ü/g, 'u').replace(/ö/g, 'o').replace(/ä/g, 'a').replace(/ß/g, 'ss');
+      const builtinFnKeys = Object.keys(builtinFunctionSignatures).map(f => f.toLowerCase());
       if (keywords.map(k => k.toLowerCase()).includes(lower)) {
         result += '<span class="keyword">' + escapeHtml(ident) + '</span>';
-      } else if (builtinFunctions.map(f => f.toLowerCase()).includes(lower)) {
+      } else if (builtinFunctions.map(f => f.toLowerCase()).includes(lower) || builtinFnKeys.includes(lower)) {
         result += '<span class="function">' + escapeHtml(ident) + '</span>';
       } else {
         result += escapeHtml(ident);
@@ -397,7 +895,23 @@ function createEditor(container, initialContent) {
     lineNumbers.scrollTop = editorTextarea.scrollTop;
   }
   
-  editorTextarea.addEventListener('input', updateEditor);
+  editorTextarea.addEventListener('input', () => {
+    updateEditor();
+    handleAutocompleteInput();
+  });
+  editorTextarea.addEventListener('keydown', (e) => {
+    handleAutocompleteKeydown(e);
+    if (!autocompletePopup?.classList.contains('show')) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = editorTextarea.selectionStart;
+        const end = editorTextarea.selectionEnd;
+        editorTextarea.value = editorTextarea.value.substring(0, start) + '    ' + editorTextarea.value.substring(end);
+        editorTextarea.selectionStart = editorTextarea.selectionEnd = start + 4;
+        updateEditor();
+      }
+    }
+  });
   editorTextarea.addEventListener('scroll', syncScroll);
   
   // Color picker on click
@@ -416,17 +930,7 @@ function createEditor(container, initialContent) {
     }
   });
   
-  editorTextarea.addEventListener('keydown', (e) => {
-    // Tab support
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      const start = editorTextarea.selectionStart;
-      const end = editorTextarea.selectionEnd;
-      editorTextarea.value = editorTextarea.value.substring(0, start) + '    ' + editorTextarea.value.substring(end);
-      editorTextarea.selectionStart = editorTextarea.selectionEnd = start + 4;
-      updateEditor();
-    }
-  });
+
   
   // Set initial content
   editorTextarea.value = initialContent || getDefaultCode();
@@ -437,7 +941,9 @@ function createEditor(container, initialContent) {
     setValue: (content) => {
       editorTextarea.value = content;
       updateEditor();
-    }
+    },
+    refresh: () => updateEditor(),
+    getTextarea: () => editorTextarea
   };
 }
 
@@ -804,6 +1310,7 @@ async function init() {
   initResizer();
   initModals();
   createColorPicker();
+  createAutocompletePopup();
   
   await loadFiles();
   
@@ -851,16 +1358,21 @@ async function init() {
     }
   });
   
-  // Close color picker when clicking outside
-  document.addEventListener('click', (e) => {
-    const popup = document.getElementById('colorPickerPopup');
-    const textarea = document.getElementById('codeTextarea');
-    if (popup && popup.classList.contains('show')) {
-      if (!popup.contains(e.target) && e.target !== textarea) {
-        hideColorPicker();
-      }
-    }
-  });
+   // Close color picker and autocomplete when clicking outside
+   document.addEventListener('click', (e) => {
+     const popup = document.getElementById('colorPickerPopup');
+     const textarea = document.getElementById('codeTextarea');
+     if (popup && popup.classList.contains('show')) {
+       if (!popup.contains(e.target) && e.target !== textarea) {
+         hideColorPicker();
+       }
+     }
+     if (autocompletePopup && autocompletePopup.classList.contains('show')) {
+       if (!autocompletePopup.contains(e.target) && e.target !== textarea) {
+         hideAutocompletePopup();
+       }
+     }
+   });
   
   logToConsole('BenLang IDE bereit!', 'success');
 }
