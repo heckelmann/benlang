@@ -467,92 +467,25 @@ body {
   color: #8be9fd !important;
 }
 
-/* Custom Code Editor */
-.code-editor {
-  display: flex;
+/* Monaco Editor Styles */
+.editor-container {
   height: 100%;
-  background: var(--editor-bg);
-  font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
-  font-size: 15px;
-  line-height: 1.5;
-}
-
-.line-numbers {
-  padding: 10px 8px;
-  background: var(--bg-medium);
-  color: var(--text-dim);
-  text-align: right;
-  user-select: none;
-  border-right: 1px solid var(--border);
-  overflow: hidden;
-  white-space: pre;
-  min-width: 40px;
-}
-
-.editor-wrapper {
-  position: relative;
-  flex: 1;
-  overflow: hidden;
-}
-
-.syntax-highlight,
-#codeTextarea {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
+  overflow: hidden;
+}
+
+#monaco-editor {
   height: 100%;
-  padding: 10px;
-  margin: 0;
-  border: none;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  white-space: pre;
-  overflow: auto;
-  box-sizing: border-box;
+  width: 100%;
 }
 
-.syntax-highlight {
-  pointer-events: none;
-  color: var(--text);
-  background: transparent;
+/* Monaco theme overrides for BenLang look */
+.monaco-editor .margin {
+  background-color: var(--bg-medium) !important;
 }
 
-#codeTextarea {
-  background: transparent;
-  color: transparent;
-  caret-color: var(--text);
-  resize: none;
-  outline: none;
-  z-index: 1;
-}
-
-#codeTextarea::selection {
-  background: rgba(0, 212, 255, 0.3);
-}
-
-/* Syntax colors - Futuristic */
-.syntax-highlight .keyword {
-  color: #ff79c6;
-  font-weight: bold;
-}
-
-.syntax-highlight .string {
-  color: #50fa7b;
-}
-
-.syntax-highlight .number {
-  color: #ffcc00;
-}
-
-.syntax-highlight .comment {
-  color: #6272a4;
-  font-style: italic;
-}
-
-.syntax-highlight .function {
-  color: #00d4ff;
+.monaco-editor .minimap {
+  background-color: var(--bg-medium) !important;
 }
 
 /* Responsive */
@@ -671,136 +604,4 @@ body {
 .color-preset:hover {
   transform: scale(1.15);
   border-color: var(--accent);
-}
-
-/* Color code in editor */
-.syntax-highlight .color-code {
-  text-shadow: 0 0 2px rgba(0,0,0,0.5);
-}
-
-/* Autocomplete Popup */
-.autocomplete-popup {
-  display: none;
-  position: fixed;
-  background: var(--bg-medium);
-  border: 2px solid var(--accent);
-  border-radius: 8px;
-  max-height: 280px;
-  overflow-y: auto;
-  z-index: 3000;
-  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
-  min-width: 220px;
-}
-
-.autocomplete-popup.show {
-  display: block;
-}
-
-.autocomplete-item {
-  padding: 8px 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid var(--border);
-  transition: background 0.1s;
-}
-
-.autocomplete-item:last-child {
-  border-bottom: none;
-}
-
-.autocomplete-item:hover,
-.autocomplete-item.selected {
-  background: var(--bg-light);
-}
-
-.autocomplete-item .icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: bold;
-  flex-shrink: 0;
-}
-
-.autocomplete-item .icon.keyword {
-  background: rgba(255, 121, 198, 0.2);
-  color: #ff79c6;
-}
-
-.autocomplete-item .icon.function {
-  background: rgba(0, 212, 255, 0.2);
-  color: #00d4ff;
-}
-
-.autocomplete-item .icon.variable {
-  background: rgba(189, 147, 249, 0.2);
-  color: #bd93f9;
-}
-
-.autocomplete-item .icon.figur {
-  background: rgba(0, 255, 157, 0.2);
-  color: #00ff9d;
-}
-
-.autocomplete-item .icon.property {
-  background: rgba(255, 204, 0, 0.2);
-  color: #ffcc00;
-}
-
-.autocomplete-item .content {
-  flex: 1;
-  min-width: 0;
-}
-
-.autocomplete-item .label {
-  color: var(--text);
-  font-family: 'Fira Code', 'Consolas', monospace;
-  font-size: 14px;
-}
-
-.autocomplete-item .detail {
-  color: var(--text-dim);
-  font-size: 11px;
-  margin-top: 2px;
-}
-
-.autocomplete-item .detail.function {
-  color: var(--accent);
-}
-
-.autocomplete-no-match {
-  padding: 10px 12px;
-  color: var(--text-dim);
-  font-size: 13px;
-  text-align: center;
-}
-
-.autocomplete-footer {
-  padding: 6px 10px;
-  background: var(--bg-light);
-  border-top: 1px solid var(--border);
-  font-size: 11px;
-  color: var(--text-dim);
-  border-radius: 0 0 6px 6px;
-  display: flex;
-  gap: 15px;
-}
-
-.autocomplete-footer span {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.autocomplete-footer kbd {
-  background: var(--bg-dark);
-  padding: 2px 5px;
-  border-radius: 3px;
-  font-family: inherit;
-  font-size: 10px;
 }

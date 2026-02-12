@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BenLang - Programmieren für Kinder</title>
   <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+  <script defer src="/js/monaco-setup.js"></script>
   <script defer src="/js/editor.js"></script>
 </head>
 <body>
@@ -35,13 +37,15 @@
 
     <!-- Main Content -->
     <main class="main">
-      <!-- Editor Panel -->
-      <div class="panel panel-editor">
-        <div class="panel-header">
-          <span>Code</span>
+        <!-- Editor Panel -->
+        <div class="panel panel-editor">
+          <div class="panel-header">
+            <span>Code</span>
+          </div>
+          <div class="editor-container" id="editorContainer">
+            <div id="monaco-editor" style="height: 100%; width: 100%;"></div>
+          </div>
         </div>
-        <div class="editor-container" id="editorContainer"></div>
-      </div>
 
       <!-- Resizer -->
       <div class="resizer" id="resizer"></div>
@@ -153,6 +157,34 @@
         <div class="modal-body">
           <input type="file" id="imageInput" accept="image/*">
           <p class="hint">PNG oder JPG Bilder (max. 1MB)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color Picker Popup -->
+    <div class="modal" id="colorPickerModal">
+      <div class="modal-content modal-small">
+        <div class="modal-header">
+          <span>Farbe wählen</span>
+          <button class="modal-close" id="closeColorPicker">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="color" id="colorPickerInput" value="#6bb88a" style="width: 100%; height: 60px; cursor: pointer;">
+          <div class="color-picker-preview" style="margin-top: 15px; text-align: center;">
+            <span class="color-picker-hex" id="colorPickerHex">#6bb88a</span>
+          </div>
+          <div class="color-picker-presets" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px;">
+            <div class="color-preset" data-color="#00d4ff" style="background-color: #00d4ff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
+            <div class="color-preset" data-color="#00ff9d" style="background-color: #00ff9d; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
+            <div class="color-preset" data-color="#ffcc00" style="background-color: #ffcc00; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
+            <div class="color-preset" data-color="#ff79c6" style="background-color: #ff79c6; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
+            <div class="color-preset" data-color="#bd93f9" style="background-color: #bd93f9; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
+            <div class="color-preset" data-color="#ffffff" style="background-color: #ffffff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
+            <div class="color-preset" data-color="#0d1117" style="background-color: #0d1117; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
+            <div class="color-preset" data-color="#ff6b6b" style="background-color: #ff6b6b; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
+            <div class="color-preset" data-color="#8be9fd" style="background-color: #8be9fd; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
+            <div class="color-preset" data-color="#50fa7b" style="background-color: #50fa7b; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
+          </div>
         </div>
       </div>
     </div>
