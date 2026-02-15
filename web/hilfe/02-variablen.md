@@ -127,6 +127,23 @@ WENN_TASTE("r") {
 - Variablen mit GROSSBUCHSTABEN sind Befehle (wie `VAR`, `WENN`)
 - Deine eigenen Variablen sollten kleinbuchstaben oder camelCase sein
 
+## Text-Funktionen
+
+### LAENGE
+```benlang
+VAR laenge = LAENGE("Hallo")  // 5
+```
+
+### ZEICHEN
+```benlang
+VAR buchstabe = ZEICHEN("Hallo", 0)  // "H"
+```
+
+### GROSSBUCHSTABEN
+```benlang
+VAR text = GROSSBUCHSTABEN("hallo")  // "HALLO"
+```
+
 ## Übung
 
 Erstelle ein Programm mit:

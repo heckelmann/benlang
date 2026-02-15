@@ -58,17 +58,17 @@ const originalLog = console.log;
 const originalError = console.error;
 const originalWarn = console.warn;
 
-console.log = function(...args) {
+console.log = function (...args) {
   originalLog.apply(console, args);
   logToConsole(args.join(' '), 'log');
 };
 
-console.error = function(...args) {
+console.error = function (...args) {
   originalError.apply(console, args);
   logToConsole(args.join(' '), 'error');
 };
 
-console.warn = function(...args) {
+console.warn = function (...args) {
   originalWarn.apply(console, args);
   logToConsole(args.join(' '), 'warning');
 };
@@ -78,32 +78,37 @@ async function loadFiles() {
   try {
     const response = await fetch('/api/dateien');
     const data = await response.json();
-    
+
     if (data.projekt && projectName) {
       projectName.textContent = data.projekt;
     }
-    
+
     fileModels = {};
     if (data.dateien && Array.isArray(data.dateien)) {
       data.dateien.forEach(f => {
         fileModels[f.name] = f.inhalt || '';
       });
     }
-    
-    renderFileList();
-    
-    const benFile = Object.keys(fileModels).find(f => f.endsWith('.ben'));
-    if (benFile) {
-      currentFile = benFile;
-      const content = fileModels[benFile] || getDefaultCode();
+
+    // Sort files: hauptspiel.ben first
+    const files = Object.keys(fileModels).filter(f => f.endsWith('.ben')).sort((a, b) => {
+      if (a === 'hauptspiel.ben') return -1;
+      if (b === 'hauptspiel.ben') return 1;
+      return a.localeCompare(b);
+    });
+
+    if (files.length > 0) {
+      currentFile = files[0];
+      const content = fileModels[currentFile] || getDefaultCode();
       setEditorContent(content);
     } else {
       currentFile = 'hauptspiel.ben';
       fileModels[currentFile] = getDefaultCode();
-      renderFileList();
       setEditorContent(getDefaultCode());
     }
-    
+
+    renderFileList();
+
     hasUnsavedChanges = false;
     updateFileTab();
     return true;
@@ -119,9 +124,9 @@ async function loadFiles() {
 
 function renderFileList() {
   if (!fileList) return;
-  
+
   fileList.innerHTML = '';
-  
+
   Object.keys(fileModels).filter(f => f.endsWith('.ben')).forEach(filename => {
     const tab = document.createElement('div');
     tab.className = 'file-tab' + (filename === currentFile ? ' active' : '');
@@ -133,24 +138,24 @@ function renderFileList() {
 
 function openFile(filename) {
   if (!monacoEditor || !fileModels[filename]) return;
-  
+
   // Save current file
   if (currentFile) {
     fileModels[currentFile] = monacoEditor.getValue();
   }
-  
+
   currentFile = filename;
   setEditorContent(fileModels[filename] || '');
-  
+
   hasUnsavedChanges = false;
   renderFileList();
 }
 
 async function saveCurrentFile() {
   if (!currentFile || !monacoEditor) return;
-  
+
   fileModels[currentFile] = monacoEditor.getValue();
-  
+
   try {
     await fetch('/api/datei', {
       method: 'POST',
@@ -160,7 +165,7 @@ async function saveCurrentFile() {
         inhalt: fileModels[currentFile]
       })
     });
-    
+
     hasUnsavedChanges = false;
     updateFileTab();
     logToConsole('Datei gespeichert: ' + currentFile, 'success');
@@ -171,7 +176,7 @@ async function saveCurrentFile() {
 
 function updateFileTab() {
   if (!fileList) return;
-  
+
   const tabs = fileList.querySelectorAll('.file-tab');
   tabs.forEach(tab => {
     const nameSpan = tab.querySelector('.name');
@@ -187,7 +192,7 @@ function updateFileTab() {
 // Editor content management
 function setEditorContent(content) {
   if (!monacoEditor) return;
-  
+
   monacoEditor.setValue(content);
   hasUnsavedChanges = false;
   updateFileTab();
@@ -202,16 +207,16 @@ let isCompiling = false;
 async function compileAndRun() {
   if (isCompiling) return;
   isCompiling = true;
-  
+
   try {
     clearConsole();
     logToConsole('Kompiliere...', 'log');
-    
+
     // Save current content
     if (monacoEditor && currentFile) {
       fileModels[currentFile] = monacoEditor.getValue();
     }
-    
+
     // Collect all code
     let allCode = '';
     const benFiles = Object.keys(fileModels).filter(f => f.endsWith('.ben'));
@@ -223,41 +228,56 @@ async function compileAndRun() {
     benFiles.forEach(filename => {
       allCode += fileModels[filename] + '\n';
     });
-    
+
     const response = await fetch('/api/kompilieren', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code: allCode })
     });
-    
+
     const result = await response.json();
-    
+
     if (result.fehler && result.fehler.length > 0) {
       result.fehler.forEach(err => {
         logToConsole(err, 'error');
       });
+      // Ensure editor is NOT locked if compilation fails
+      if (monacoEditor) monacoEditor.updateOptions({ readOnly: false });
       return;
     }
-    
+
     logToConsole('Spiel wird gestartet...', 'success');
-    
+
     if (typeof _benlang !== 'undefined') {
+      // Lock editor during game
+      if (monacoEditor) {
+        monacoEditor.updateOptions({ readOnly: true });
+      }
+
       _benlang.zuruecksetzen();
       _benlang.init('gameCanvas');
-      
-      eval(result.js);
-      _benlang.starten();
-      
-      if (_benlang.spielName && gameTitle) {
-        gameTitle.textContent = _benlang.spielName;
+
+      try {
+        eval(result.js);
+        _benlang.starten();
+
+        if (_benlang.spielName && gameTitle) {
+          gameTitle.textContent = _benlang.spielName;
+        }
+      } catch (evalErr) {
+        logToConsole('Laufzeitfehler beim Spielstart: ' + evalErr.message, 'error');
+        // Unlock on start failure
+        if (monacoEditor) monacoEditor.updateOptions({ readOnly: false });
       }
     } else {
       logToConsole('Fehler: Game Engine nicht geladen', 'error');
+      if (monacoEditor) monacoEditor.updateOptions({ readOnly: false });
     }
-    
+
   } catch (err) {
-    logToConsole('Laufzeitfehler: ' + err.message, 'error');
+    logToConsole('Kompilierungsfehler: ' + err.message, 'error');
     console.error(err);
+    if (monacoEditor) monacoEditor.updateOptions({ readOnly: false });
   } finally {
     isCompiling = false;
   }
@@ -267,6 +287,13 @@ function stopGame() {
   if (typeof _benlang !== 'undefined') {
     _benlang.stoppen();
   }
+
+  // Unlock editor
+  if (monacoEditor) {
+    monacoEditor.updateOptions({ readOnly: false });
+    monacoEditor.focus();
+  }
+
   logToConsole('Spiel gestoppt', 'log');
 }
 
@@ -274,10 +301,10 @@ function stopGame() {
 async function createNewFile() {
   const name = prompt('Dateiname (ohne .ben):');
   if (!name) return;
-  
+
   const filename = name.endsWith('.ben') ? name : name + '.ben';
   fileModels[filename] = '// ' + filename + '\n';
-  
+
   try {
     await fetch('/api/datei', {
       method: 'POST',
@@ -290,7 +317,7 @@ async function createNewFile() {
   } catch (err) {
     console.warn('Konnte Datei nicht auf Server speichern');
   }
-  
+
   renderFileList();
   openFile(filename);
 }
@@ -299,14 +326,14 @@ async function createNewFile() {
 async function uploadImage(file) {
   const formData = new FormData();
   formData.append('bild', file);
-  
+
   try {
     const response = await fetch('/api/bild', {
       method: 'POST',
       body: formData
     });
     const data = await response.json();
-    
+
     if (data.pfad) {
       logToConsole('Bild hochgeladen: ' + data.pfad, 'success');
       return data.pfad;
@@ -356,17 +383,17 @@ function createEditor(container, initialContent) {
   // Update symbol table and unsaved changes on content change
   monacoEditor.onDidChangeModelContent(() => {
     const content = monacoEditor.getValue();
-    
+
     // Update symbol table for autocomplete
     if (typeof updateSymbolTable === 'function') {
       updateSymbolTable(content);
     }
-    
+
     // Update hex color decorations
     if (typeof createHexColorDecorations === 'function') {
       createHexColorDecorations(monacoEditor);
     }
-    
+
     hasUnsavedChanges = true;
     updateFileTab();
   });
@@ -418,7 +445,7 @@ function showColorPicker(color, startIndex, lineNumber) {
   const modal = document.getElementById('colorPickerModal');
   const input = document.getElementById('colorPickerInput');
   const hexDisplay = document.getElementById('colorPickerHex');
-  
+
   input.value = expandHex(color);
   hexDisplay.textContent = color;
   modal.classList.add('show');
@@ -439,21 +466,22 @@ function expandHex(hex) {
 
 function applyColorChange(newColor) {
   if (!colorPickerState || !monacoEditor) return;
-  
+
   const model = monacoEditor.getModel();
   const fullLine = model.getLineContent(colorPickerState.lineNumber);
   const colorMatch = fullLine.match(/"(#[0-9A-Fa-f]{3,8})"/);
-  
+
   if (colorMatch) {
-    const startOffset = model.getOffsetAt({ lineNumber: colorPickerState.lineNumber, column: fullLine.indexOf(colorMatch[0]) + 1 });
-    const endOffset = startOffset + colorMatch[1].length;
-    
+    const startColumn = colorPickerState.startIndex + 2; // +1 for 1-based column, +1 for reaching the '#' inside quotes
+    const endColumn = startColumn + colorMatch[1].length;
+
     model.pushEditOperations(
-      [{ range: new monaco.Range(colorPickerState.lineNumber, startOffset, colorPickerState.lineNumber, endOffset), text: newColor }],
-      []
+      [],
+      [{ range: new monaco.Range(colorPickerState.lineNumber, startColumn, colorPickerState.lineNumber, endColumn), text: newColor }],
+      () => null
     );
   }
-  
+
   colorPickerState.color = newColor;
   document.getElementById('colorPickerHex').textContent = newColor;
 

@@ -1,0 +1,253 @@
+// Galgenmännchen - Das klassische Wortraten-Spiel
+// Spieler A gibt ein Wort ein, Spieler B muss es erraten!
+
+SPIEL "Galgenmännchen"
+
+// Farben
+VAR farbeHintergrund = "#1a1a2e"
+VAR farbeText = "#ffffff"
+VAR farbeAccent = "#4ecca3"
+VAR farbeFehler = "#e94560"
+
+// Spielstatus
+VAR geheimwort = ""
+VAR gerateneBuchstaben = ""
+VAR falscheVersuche = 0
+VAR maximalVersuche = 6
+VAR spielVorbei = FALSCH
+VAR gewonnen = FALSCH
+VAR buchstabe = ""
+VAR letzterBuchstabe = ""
+VAR nachricht = ""
+VAR nachrichtFarbe = farbeText
+
+WENN_START {
+    nachricht = "Spieler A: Tippe ein Wort ein!"
+    nachrichtFarbe = farbeAccent
+    
+    // Spieler A gibt das Wort ein
+    geheimwort = FRAGE("Welches Wort soll geraten werden?")
+    
+    // Wort in Großbuchstaben umwandeln
+    geheimwort = GROSSBUCHSTABEN(geheimwort)
+    
+    nachricht = "Wort ist " + LAENGE(geheimwort) + " Buchstaben - Rate!"
+    nachrichtFarbe = farbeAccent
+}
+
+WENN_IMMER {
+    // Hintergrund
+    ZEICHNE_RECHTECK(0, 0, 800, 600, farbeHintergrund)
+    
+    // Aktuellen Buchstaben von Tastatur lesen
+    buchstabe = GEDRUECKTE_TASTE()
+    
+    // Nur verarbeiten wenn ein neuer Buchstabe gedrückt wurde
+    WENN buchstabe != letzterBuchstabe UND buchstabe != "" UND NICHT spielVorbei {
+        letzterBuchstabe = buchstabe
+        
+        // Nur a-z oder A-Z akzeptieren
+        VAR istBuchstabe = FALSCH
+        WENN (buchstabe >= "a" UND buchstabe <= "z") ODER (buchstabe >= "A" UND buchstabe <= "Z") {
+            istBuchstabe = WAHR
+        }
+        
+        WENN istBuchstabe {
+            // In Großbuchstaben umwandeln
+            buchstabe = GROSSBUCHSTABEN(buchstabe)
+            
+            // Prüfen ob Buchstabe schon geraten
+            VAR bereitsGeraten = FALSCH
+            VAR i = 0
+            SOLANGE i < LAENGE(gerateneBuchstaben) {
+                WENN ZEICHEN(gerateneBuchstaben, i) == buchstabe {
+                    bereitsGeraten = WAHR
+                }
+                i = i + 1
+            }
+            
+            WENN NICHT bereitsGeraten {
+                // Buchstabe hinzufügen
+                gerateneBuchstaben = gerateneBuchstaben + buchstabe
+                
+                // Prüfen ob Buchstabe im Wort vorkommt
+                VAR gefunden = FALSCH
+                i = 0
+                SOLANGE i < LAENGE(geheimwort) {
+                    WENN ZEICHEN(geheimwort, i) == buchstabe {
+                        gefunden = WAHR
+                    }
+                    i = i + 1
+                }
+                
+                WENN gefunden {
+                    nachricht = "Richtig! " + buchstabe + " ist im Wort!"
+                    nachrichtFarbe = farbeAccent
+                } SONST {
+                    nachricht = "Leider nein! " + buchstabe + " nicht im Wort"
+                    nachrichtFarbe = farbeFehler
+                    falscheVersuche = falscheVersuche + 1
+                }
+                
+                // Prüfen ob gewonnen
+                VAR alleGeraten = WAHR
+                i = 0
+                SOLANGE i < LAENGE(geheimwort) {
+                    VAR imWort = FALSCH
+                    VAR j = 0
+                    SOLANGE j < LAENGE(gerateneBuchstaben) {
+                        WENN ZEICHEN(geheimwort, i) == ZEICHEN(gerateneBuchstaben, j) {
+                            imWort = WAHR
+                        }
+                        j = j + 1
+                    }
+                    WENN NICHT imWort {
+                        alleGeraten = FALSCH
+                    }
+                    i = i + 1
+                }
+                
+                WENN alleGeraten {
+                    spielVorbei = WAHR
+                    gewonnen = WAHR
+                    nachricht = "GEWONNEN! Das Wort war: " + geheimwort
+                    nachrichtFarbe = farbeAccent
+                }
+                
+                // Prüfen ob verloren
+                WENN falscheVersuche >= maximalVersuche {
+                    spielVorbei = WAHR
+                    gewonnen = FALSCH
+                    nachricht = "VERLOREN! Das Wort war: " + geheimwort
+                    nachrichtFarbe = farbeFehler
+                }
+            }
+        }
+    }
+    
+    // Galgen zeichnen
+    zeichneGalgen()
+    
+    // Wort mit geratenen Buchstaben anzeigen
+    zeichneWort()
+    
+    // Geratene Buchstaben anzeigen
+    ZEICHNE_RECHTECK(10, 450, 250, 80, "#16213e")
+    ZEIGE_TEXT("Geraten: " + gerateneBuchstaben, 20, 485, farbeText, 18)
+    
+    // Status anzeigen
+    ZEICHNE_RECHTECK(280, 450, 200, 80, "#16213e")
+    ZEIGE_TEXT("Versuche: " + (maximalVersuche - falscheVersuche) + "/" + maximalVersuche, 290, 485, farbeAccent, 20)
+    
+    // Nachricht anzeigen
+    WENN nachricht != "" {
+        ZEICHNE_RECHTECK(50, 400, 300, 40, "#16213e")
+        ZEIGE_TEXT(nachricht, 60, 427, nachrichtFarbe, 18)
+    }
+    
+    // Spielende
+    WENN spielVorbei {
+        ZEICHNE_RECHTECK(200, 200, 400, 200, "#16213e")
+        
+        WENN gewonnen {
+            ZEIGE_TEXT("GEWONNEN!", 300, 260, farbeAccent, 40)
+            ZEIGE_TEXT("Das Wort war: " + geheimwort, 260, 320, farbeText, 24)
+        } SONST {
+            ZEIGE_TEXT("VERLOREN!", 310, 260, farbeFehler, 40)
+            ZEIGE_TEXT("Das Wort war: " + geheimwort, 280, 320, farbeText, 24)
+        }
+        
+        ZEIGE_TEXT("Druecke LEERTASTE fuer neues Spiel", 200, 370, "#8892b0", 18)
+    }
+}
+
+// Neustart mit Leertaste
+WENN_TASTE("leertaste") {
+    WENN spielVorbei {
+        // Neues Spiel
+        gerateneBuchstaben = ""
+        falscheVersuche = 0
+        spielVorbei = FALSCH
+        gewonnen = FALSCH
+        letzterBuchstabe = ""
+        nachricht = ""
+        
+        geheimwort = FRAGE("Spieler A: Neues Wort eingeben:")
+        geheimwort = GROSSBUCHSTABEN(geheimwort)
+        
+        nachricht = "Wort ist " + LAENGE(geheimwort) + " Buchstaben"
+        nachrichtFarbe = farbeAccent
+    }
+}
+
+// Galgen zeichnen
+FUNKTION zeichneGalgen() {
+    // Galgen-Pfosten
+    ZEICHNE_LINIE(600, 50, 600, 550, "#8b4513")
+    ZEICHNE_LINIE(600, 50, 750, 50, "#8b4513")
+    ZEICHNE_LINIE(750, 50, 750, 100, "#8b4513")
+    ZEICHNE_LINIE(550, 550, 780, 550, "#8b4513")
+    
+    WENN falscheVersuche >= 1 {
+        // Kopf
+        ZEICHNE_KREIS(750, 140, 35, farbeFehler)
+    }
+    
+    WENN falscheVersuche >= 2 {
+        // Körper
+        ZEICHNE_LINIE(750, 175, 750, 280, farbeFehler)
+    }
+    
+    WENN falscheVersuche >= 3 {
+        // Linker Arm
+        ZEICHNE_LINIE(750, 200, 710, 240, farbeFehler)
+    }
+    
+    WENN falscheVersuche >= 4 {
+        // Rechter Arm
+        ZEICHNE_LINIE(750, 200, 790, 240, farbeFehler)
+    }
+    
+    WENN falscheVersuche >= 5 {
+        // Linkes Bein
+        ZEICHNE_LINIE(750, 280, 710, 350, farbeFehler)
+    }
+    
+    WENN falscheVersuche >= 6 {
+        // Rechtes Bein
+        ZEICHNE_LINIE(750, 280, 790, 350, farbeFehler)
+    }
+}
+
+// Wort anzeigen
+FUNKTION zeichneWort() {
+    VAR startX = 50
+    VAR startY = 150
+    VAR abstand = 40
+    
+    // Überschrift
+    ZEIGE_TEXT("Wort:", 50, 100, farbeText, 24)
+    
+    // Jeden Buchstaben zeichnen
+    VAR i = 0
+    SOLANGE i < LAENGE(geheimwort) {
+        VAR buchstaben = ZEICHEN(geheimwort, i)
+        VAR x = startX + (i * abstand)
+        
+        // Prüfen ob Buchstabe geraten
+        VAR angezeigt = "_"
+        VAR j = 0
+        SOLANGE j < LAENGE(gerateneBuchstaben) {
+            WENN ZEICHEN(gerateneBuchstaben, j) == buchstaben {
+                angezeigt = buchstaben
+            }
+            j = j + 1
+        }
+        
+        // Buchstabe oder Unterstrich zeichnen
+        ZEICHNE_RECHTECK(x, startY, 30, 4, farbeAccent)
+        ZEIGE_TEXT(angezeigt, x + 5, startY - 5, farbeText, 28)
+        
+        i = i + 1
+    }
+}

@@ -133,6 +133,29 @@ WENN_TASTE("r") {
 - Variablen mit GROSSBUCHSTABEN sind Befehle (wie `VAR`, `WENN`)
 - Deine eigenen Variablen sollten kleinbuchstaben oder camelCase sein
 
+## Text-Funktionen
+
+BenLang hat eingebaute Funktionen für Text:
+
+### LAENGE
+```benlang
+VAR laenge = LAENGE("Hallo")  // 5
+```
+Gibt die Anzahl der Zeichen in einem Text zurück.
+
+### ZEICHEN
+```benlang
+VAR buchstabe = ZEICHEN("Hallo", 0)  // "H"
+VAR buchstabe = ZEICHEN("Hallo", 1)  // "a"
+```
+Gibt das Zeichen an einer bestimmten Position zurück (beginnt bei 0).
+
+### GROSSBUCHSTABEN
+```benlang
+VAR text = GROSSBUCHSTABEN("hallo")  // "HALLO"
+```
+Wandelt einen Text in Großbuchstaben um.
+
 ## Übung
 
 Erstelle ein Programm mit:

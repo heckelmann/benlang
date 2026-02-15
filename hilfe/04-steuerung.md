@@ -27,6 +27,28 @@ WENN_IMMER {
 
 Das ist perfekt für **flüssige Bewegungen** - solange du die Taste hältst, bewegt sich etwas.
 
+### Aktuelle Taste auslesen
+
+Mit `GEDRUECKTE_TASTE` kannst du die zuletzt gedrückte Taste auslesen und in einer Variable speichern:
+
+```benlang
+VAR buchstabe = GEDRUECKTE_TASTE
+```
+
+Das ist nützlich für Spiele wie Galgenmännchen, wo Spieler Buchstaben eingeben:
+
+```benlang
+WENN_IMMER {
+    VAR taste = GEDRUECKTE_TASTE
+    
+    // Nur neue Tasten verarbeiten
+    WENN taste != "" UND taste != letzteTaste {
+        letzteTaste = taste
+        SCHREIBE("Du hast " + taste + " gedrueckt!")
+    }
+}
+```
+
 ### Taste einmal drücken
 
 Mit `WENN_TASTE` reagierst du auf einen einzelnen Tastendruck:

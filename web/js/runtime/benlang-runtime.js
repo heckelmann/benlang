@@ -30,7 +30,7 @@
     eingabeQueue: [],  // Queue for pending FRAGE calls
 
     // Event handlers
-    startHandler: null,
+    startHandlers: [],
     immerHandlers: [],
     tasteHandlers: {},
     kollisionHandlers: [],
@@ -102,11 +102,21 @@
 
         const taste = this.mapKey(e.key);
         this.tasten[taste] = true;
+        this.letzteGedrueckteTaste = taste;
 
-        // Prevent browser default behavior while game is running
-        // (e.g. 'a' opening search, space scrolling, arrows scrolling)
+        // Prevent browser default behavior only for specific game keys 
+        // to avoid scrolling or other browser shortcuts while playing.
         if (this.running) {
-          e.preventDefault();
+          // All keys that should not trigger browser shortcuts
+          const gameKeys = [
+            'links', 'rechts', 'hoch', 'runter', 'leertaste',
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+            'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+          ];
+          if (gameKeys.includes(taste)) {
+            e.preventDefault();
+          }
         }
 
         // Don't trigger taste handlers while WENN_START is still running
@@ -176,10 +186,11 @@
       if (this.running) return;
       this.running = true;
 
-      // Call start handler (async - we need to track when it's done)
-      if (this.startHandler) {
+      // Call all start handlers (async - we need to track when they are all done)
+      if (this.startHandlers.length > 0) {
         this.startHandlerRunning = true;
-        Promise.resolve(this.startHandler()).then(() => {
+        const promises = this.startHandlers.map(handler => Promise.resolve(handler()));
+        Promise.all(promises).then(() => {
           this.startHandlerRunning = false;
         }).catch((err) => {
           this.startHandlerRunning = false;
@@ -197,6 +208,7 @@
      */
     stoppen: function () {
       this.running = false;
+      this.eingabeAktiv = false;
     },
 
     /**
@@ -208,9 +220,10 @@
       this.immerHandlers = [];
       this.tasteHandlers = {};
       this.kollisionHandlers = [];
-      this.startHandler = null;
+      this.startHandlers = [];
       this.startHandlerRunning = false;
       this.tasten = {};
+      this.letzteGedrueckteTaste = "";
       this.maus = { x: 0, y: 0, gedrueckt: false };
       // Reset text input state
       this.eingabeAktiv = false;
@@ -234,7 +247,16 @@
       // Only clear canvas and run game loop logic when WENN_START is done
       // This allows ZEIGE_TEXT + WARTE in WENN_START to work properly
       if (this.startHandlerRunning) {
-        // Just keep the loop running but don't clear/redraw
+        // Always clear and redraw canvas during WENN_START so game content is visible
+        this.ctx.fillStyle = '#0d1117';
+        this.ctx.fillRect(0, 0, this.breite, this.hoehe);
+        
+        // If text input is active during WENN_START, we must draw it
+        if (this.eingabeAktiv) {
+          this.zeichneEingabefeld();
+        }
+        
+        // Keep the loop running
         requestAnimationFrame(() => this.gameLoop());
         return;
       }
@@ -329,7 +351,7 @@
     // ========== Event Registration ==========
 
     wennStart: function (handler) {
-      this.startHandler = handler;
+      this.startHandlers.push(handler);
     },
 
     wennImmer: function (handler) {
@@ -449,6 +471,10 @@
       return this.tasten[taste.toLowerCase()] || false;
     },
 
+    gedrueckteTaste: function () {
+      return this.letzteGedrueckteTaste || "";
+    },
+
     mausX: function () {
       return this.maus.x;
     },
@@ -515,6 +541,24 @@
      */
     warte: function (ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
+    },
+
+    // ========== String Functions ==========
+
+    laenge: function (text) {
+      if (typeof text !== 'string') return 0;
+      return text.length;
+    },
+
+    zeichen: function (text, index) {
+      if (typeof text !== 'string') return '';
+      if (index < 0 || index >= text.length) return '';
+      return text[index];
+    },
+
+    grossbuchstaben: function (text) {
+      if (typeof text !== 'string') return '';
+      return text.toUpperCase();
     },
 
     // ========== Text Input Functions ==========

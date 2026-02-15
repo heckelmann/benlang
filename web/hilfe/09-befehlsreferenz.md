@@ -226,6 +226,12 @@ WENN TASTE_GEDRUECKT("links") {
 ```
 Gibt WAHR zurück wenn die Taste gerade gedrückt ist.
 
+### GEDRUECKTE_TASTE
+```benlang
+VAR taste = GEDRUECKTE_TASTE
+```
+Gibt die zuletzt gedrückte Taste als Text zurück.
+
 ### MAUS_X / MAUS_Y
 ```benlang
 VAR mausPositionX = MAUS_X()

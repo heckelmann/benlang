@@ -11,15 +11,21 @@ Mit `TASTE_GEDRUECKT` prüfst du, ob eine Taste gerade gedrückt ist:
 ```benlang
 WENN_IMMER {
     WENN TASTE_GEDRUECKT("links") {
-        x = x - 5    // Nach links bewegen
+        x = x - 5
     }
     WENN TASTE_GEDRUECKT("rechts") {
-        x = x + 5    // Nach rechts bewegen
+        x = x + 5
     }
 }
 ```
 
-Das ist perfekt für **flüssige Bewegungen** - solange du die Taste hältst, bewegt sich etwas.
+### Aktuelle Taste auslesen
+
+Mit `GEDRUECKTE_TASTE` kannst du die zuletzt gedrückte Taste auslesen:
+
+```benlang
+VAR buchstabe = GEDRUECKTE_TASTE
+```
 
 ### Taste einmal drücken
 

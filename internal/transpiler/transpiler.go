@@ -325,6 +325,8 @@ func (t *Transpiler) transpileCallExpression(ce *parser.CallExpression) string {
 		"ZEICHNE_LINIE":    "_benlang.zeichneLinie",
 		"TASTE_GEDRUECKT":  "_benlang.tasteGedrueckt",
 		"TASTE_GEDRÜCKT":   "_benlang.tasteGedrueckt",
+		"GEDRUECKTE_TASTE": "_benlang.gedrueckteTaste",
+		"GEDRÜCKTE_TASTE":  "_benlang.gedrueckteTaste",
 		"MAUS_X":           "_benlang.mausX",
 		"MAUS_Y":           "_benlang.mausY",
 		"MAUS_GEDRUECKT":   "_benlang.mausGedrueckt",
@@ -340,6 +342,9 @@ func (t *Transpiler) transpileCallExpression(ce *parser.CallExpression) string {
 		"FRAGE":            "await _benlang.frage",
 		"LOESCHEN":         "_benlang.loescheFigur",
 		"LÖSCHEN":          "_benlang.loescheFigur",
+		"LAENGE":           "_benlang.laenge",
+		"ZEICHEN":          "_benlang.zeichen",
+		"GROSSBUCHSTABEN":  "_benlang.grossbuchstaben",
 	}
 
 	args := make([]string, len(ce.Arguments))

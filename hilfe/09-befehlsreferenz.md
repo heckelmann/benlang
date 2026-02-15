@@ -232,6 +232,27 @@ WENN TASTE_GEDRUECKT("links") {
 ```
 Gibt WAHR zurück wenn die Taste gerade gedrückt ist.
 
+### GEDRUECKTE_TASTE
+```benlang
+VAR taste = GEDRUECKTE_TASTE
+```
+Gibt die zuletzt gedrückte Taste als Text zurück (z.B. "A", "b", "1").
+Gibt einen leeren Text zurück wenn keine Taste gedrückt wurde.
+
+**Beispiel:**
+```benlang
+VAR buchstabe = ""
+VAR letzterBuchstabe = ""
+
+WENN_IMMER {
+    buchstabe = GEDRUECKTE_TASTE
+    WENN buchstabe != letzterBuchstabe UND buchstabe != "" {
+        letzterBuchstabe = buchstabe
+        SCHRIB("Du hast: " + buchstabe)
+    }
+}
+```
+
 ### MAUS_X / MAUS_Y
 ```benlang
 VAR mausPositionX = MAUS_X()

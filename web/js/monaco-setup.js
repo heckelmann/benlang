@@ -16,10 +16,11 @@ const keywords = [
 
 const builtinFunctions = [
   'LADE_BILD', 'BILD_WECHSELN', 'SPIELE_TON', 'ZEIGE_TEXT', 'ZEICHNE_RECHTECK', 'ZEICHNE_KREIS',
-  'ZEICHNE_LINIE', 'TASTE_GEDRUECKT', 'TASTE_GEDRUECKT', 'MAUS_X', 'MAUS_Y',
-  'MAUS_GEDRUECKT', 'MAUS_GEDRUECKT', 'ZUFALL', 'RUNDEN', 'ABSOLUT',
+  'ZEICHNE_LINIE', 'TASTE_GEDRUECKT', 'GEDRUECKTE_TASTE', 'MAUS_X', 'MAUS_Y',
+  'MAUS_GEDRUECKT', 'ZUFALL', 'RUNDEN', 'ABSOLUT',
   'WURZEL', 'SINUS', 'KOSINUS', 'SCHREIBE', 'FRAGE', 'WARTE',
-  'LOESCHEN', 'LADE_LEVEL', 'GEHE_ZU', 'DREHE', 'SKALIERE'
+  'LOESCHEN', 'LADE_LEVEL', 'GEHE_ZU', 'DREHE', 'SKALIERE',
+  'LAENGE', 'ZEICHEN', 'GROSSBUCHSTABEN'
 ];
 
 const builtinFunctionSignatures = {
@@ -47,7 +48,11 @@ const builtinFunctionSignatures = {
   'LADE_LEVEL': { params: '(nummer)', desc: 'Laedt ein Level' },
   'GEHE_ZU': { params: '(figur, x, y)', desc: 'Bewegt eine Figur zu einer Position' },
   'DREHE': { params: '(figur, winkel)', desc: 'Dreht eine Figur' },
-  'SKALIERE': { params: '(figur, faktor)', desc: 'Skaliert eine Figur' }
+  'SKALIERE': { params: '(figur, faktor)', desc: 'Skaliert eine Figur' },
+  'GEDRUECKTE_TASTE': { params: '()', desc: 'Gibt die zuletzt gedrueckte Taste zurueck' },
+  'LAENGE': { params: '(text)', desc: 'Gibt die Laenge eines Textes zurueck' },
+  'ZEICHEN': { params: '(text, index)', desc: 'Gibt das Zeichen an einer Position zurueck' },
+  'GROSSBUCHSTABEN': { params: '(text)', desc: 'Wandelt Text in Grossbuchstaben um' }
 };
 
 const figurProperties = ['.x', '.y', '.breite', '.hoehe', '.sichtbar', '.drehung', '.geschwindigkeit'];
