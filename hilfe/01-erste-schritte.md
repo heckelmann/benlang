@@ -89,6 +89,14 @@ SPIEL "Test"  // Kommentare können auch hier stehen
 
 Drücke `Strg+S` (oder `Cmd+S` auf Mac) um deinen Code zu speichern.
 
+## 📁 Projekte verwalten
+
+Oben links findest du den **Projekt-Knopf**. Hier kannst du:
+- Ein **Neues Projekt** erstellen (ein frisches Abenteuer starten).
+- Zwischen deinen **bestehenden Projekten** hin und her wechseln.
+
+Wenn du BenLang mit einem speziellen Arbeitsverzeichnis startest, siehst du hier alle deine Spiele in diesem Ordner.
+
 ## Nächste Schritte
 
 Super! Du hast dein erstes Programm geschrieben! 

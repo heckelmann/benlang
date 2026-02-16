@@ -1,6 +1,7 @@
 # Build artifacts
 /benlang
 dist/
+.bencreds
 
 # IDE/Editor
 .opencode/

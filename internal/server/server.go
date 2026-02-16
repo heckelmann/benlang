@@ -1,6 +1,7 @@
 package server
 
 import (
+	"benlang/internal/auth"
 	"benlang/internal/lexer"
 	"benlang/internal/parser"
 	"benlang/internal/project"
@@ -10,8 +11,10 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 // WebContent will be set from main package with embedded files
@@ -19,15 +22,21 @@ var WebContent fs.FS
 
 // Server represents the BenLang HTTP server
 type Server struct {
-	project *project.Project
-	port    int
+	project     *project.Project
+	port        int
+	WorkDir     string
+	AuthEnabled bool
+	auth        *auth.Credentials
+	mu          sync.RWMutex
 }
 
 // New creates a new Server
 func New(proj *project.Project, port int) *Server {
+	creds, _ := auth.LoadCredentials()
 	return &Server{
 		project: proj,
 		port:    port,
+		auth:    creds,
 	}
 }
 
@@ -41,6 +50,14 @@ func (s *Server) Start() error {
 	mux.HandleFunc("/api/kompilieren", s.handleKompilieren)
 	mux.HandleFunc("/api/bilder", s.handleBilder)
 	mux.HandleFunc("/api/hilfe", s.handleHilfe)
+	mux.HandleFunc("/api/login", s.handleLogin)
+	mux.HandleFunc("/api/logout", s.handleLogout)
+
+	// Projektverwaltung API
+	mux.HandleFunc("/api/projekte/liste", s.handleProjekteListe)
+	mux.HandleFunc("/api/projekte/neu", s.handleProjekteNeu)
+	mux.HandleFunc("/api/projekte/oeffnen", s.handleProjekteOeffnen)
+	mux.HandleFunc("/api/system/info", s.handleSystemInfo)
 
 	// Project files (images, sounds)
 	mux.HandleFunc("/projekt/", s.handleProjektDateien)
@@ -90,9 +107,107 @@ func (s *Server) Start() error {
 	addr := fmt.Sprintf(":%d", s.port)
 	fmt.Printf("🎮 BenLang Server gestartet auf http://localhost%s\n", addr)
 	fmt.Printf("📁 Projekt: %s\n", s.project.Path)
+	if s.AuthEnabled {
+		fmt.Println("🔒 Authentifizierung ist AKTIVIERT")
+	}
 	fmt.Println("Drücke Strg+C zum Beenden")
 
-	return http.ListenAndServe(addr, mux)
+	handler := s.wrapAuth(mux)
+	return http.ListenAndServe(addr, handler)
+}
+
+func (s *Server) wrapAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !s.AuthEnabled {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Allow access to login page and login API
+		if r.URL.Path == "/login.html" || r.URL.Path == "/api/login" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Check session cookie
+		cookie, err := r.Cookie("session")
+		if err != nil {
+			if strings.HasPrefix(r.URL.Path, "/api/") {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			} else {
+				http.Redirect(w, r, "/login.html", http.StatusSeeOther)
+			}
+			return
+		}
+
+		_, authenticated := s.auth.GetUsernameFromSession(cookie.Value)
+		if !authenticated {
+			if strings.HasPrefix(r.URL.Path, "/api/") {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			} else {
+				http.Redirect(w, r, "/login.html", http.StatusSeeOther)
+			}
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if !s.auth.Verify(req.Username, req.Password) {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	token, err := s.auth.CreateSession(req.Username)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false, // Set to true if using HTTPS
+		SameSite: http.SameSiteStrictMode,
+	})
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session")
+	if err == nil {
+		s.auth.DeleteSession(cookie.Value)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	})
+
+	http.Redirect(w, r, "/login.html", http.StatusSeeOther)
 }
 
 // handleDateien returns a list of project files
@@ -102,7 +217,11 @@ func (s *Server) handleDateien(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.mu.RLock()
 	files, err := s.project.ListFiles()
+	projectName := s.project.Name
+	s.mu.RUnlock()
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -111,7 +230,9 @@ func (s *Server) handleDateien(w http.ResponseWriter, r *http.Request) {
 	// Load content for .ben files
 	for i, f := range files {
 		if strings.HasSuffix(f.Name, ".ben") {
+			s.mu.RLock()
 			content, err := s.project.ReadFile(f.Name)
+			s.mu.RUnlock()
 			if err == nil {
 				files[i].Content = content
 			}
@@ -119,7 +240,7 @@ func (s *Server) handleDateien(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := map[string]interface{}{
-		"projekt": s.project.Name,
+		"projekt": projectName,
 		"dateien": files,
 	}
 
@@ -137,7 +258,9 @@ func (s *Server) handleDatei(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		s.mu.RLock()
 		content, err := s.project.ReadFile(name)
+		s.mu.RUnlock()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -160,7 +283,11 @@ func (s *Server) handleDatei(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := s.project.WriteFile(req.Name, req.Inhalt); err != nil {
+		s.mu.Lock()
+		err := s.project.WriteFile(req.Name, req.Inhalt)
+		s.mu.Unlock()
+
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -245,7 +372,11 @@ func (s *Server) handleBilder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save to project
-	if err := s.project.SaveImage(header.Filename, content); err != nil {
+	s.mu.Lock()
+	err = s.project.SaveImage(header.Filename, content)
+	s.mu.Unlock()
+
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -268,14 +399,17 @@ func (s *Server) handleProjektDateien(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.mu.RLock()
 	content, err := s.project.ReadFile(cleanPath)
 	if err != nil {
 		// Try in bilder/ directory
 		content, err = s.project.ReadFile(filepath.Join("bilder", cleanPath))
-		if err != nil {
-			http.NotFound(w, r)
-			return
-		}
+	}
+	s.mu.RUnlock()
+
+	if err != nil {
+		http.NotFound(w, r)
+		return
 	}
 
 	// Set content type based on extension
@@ -336,5 +470,130 @@ func (s *Server) handleHilfe(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"seite":  seite,
 		"inhalt": string(content),
+	})
+}
+
+// handleProjekteListe returns a list of directories in WorkDir
+func (s *Server) handleProjekteListe(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	entries, err := os.ReadDir(s.WorkDir)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var projekte []string
+	for _, entry := range entries {
+		if entry.IsDir() && !strings.HasPrefix(entry.Name(), ".") {
+			projekte = append(projekte, entry.Name())
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(projekte)
+}
+
+// handleProjekteNeu creates a new project
+func (s *Server) handleProjekteNeu(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Name string `json:"name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Security: check name
+	if req.Name == "" || strings.Contains(req.Name, "..") || strings.Contains(req.Name, "/") || strings.Contains(req.Name, "\\") {
+		http.Error(w, "Ungültiger Projektname", http.StatusBadRequest)
+		return
+	}
+
+	projectPath := filepath.Join(s.WorkDir, req.Name)
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	proj, err := project.New(projectPath)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := proj.CreateDefaultProject(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	s.project = proj
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{"erfolg": true, "projekt": s.project.Name})
+}
+
+// handleProjekteOeffnen switches to an existing project
+func (s *Server) handleProjekteOeffnen(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Name string `json:"name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Security: check name
+	if req.Name == "" || strings.Contains(req.Name, "..") || strings.Contains(req.Name, "/") || strings.Contains(req.Name, "\\") {
+		http.Error(w, "Ungültiger Projektname", http.StatusBadRequest)
+		return
+	}
+
+	projectPath := filepath.Join(s.WorkDir, req.Name)
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	proj, err := project.New(projectPath)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	s.project = proj
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{"erfolg": true, "projekt": s.project.Name})
+}
+
+// handleSystemInfo returns information about the server
+func (s *Server) handleSystemInfo(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	s.mu.RLock()
+	projectName := s.project.Name
+	s.mu.RUnlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"projekt": projectName,
+		"workdir": s.WorkDir,
 	})
 }

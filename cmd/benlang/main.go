@@ -1,6 +1,7 @@
 package main
 
 import (
+	"benlang/internal/auth"
 	"benlang/internal/project"
 	"benlang/internal/server"
 	"benlang/web"
@@ -8,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 )
 
@@ -19,6 +21,9 @@ func main() {
 	showVersion := flag.Bool("version", false, "Version anzeigen")
 	help := flag.Bool("help", false, "Hilfe anzeigen")
 	noBrowser := flag.Bool("no-browser", false, "Browser nicht automatisch öffnen")
+	workDirFlag := flag.String("workdir", "", "Basis-Verzeichnis für Projekte")
+	enableAuth := flag.Bool("enable-auth", false, "Einfache Authentifizierung (Basic Auth) aktivieren")
+	manageUsers := flag.Bool("manage-users", false, "Benutzer für die Web-IDE verwalten")
 
 	flag.Usage = func() {
 		fmt.Println("BenLang - Eine Programmiersprache für Kinder")
@@ -33,10 +38,18 @@ func main() {
 		fmt.Println("Beispiele:")
 		fmt.Println("  benlang /pfad/zu/meinspiel")
 		fmt.Println("  benlang --port 8080 ./meinspiel")
+		fmt.Println("  benlang --workdir ./meine-spiele projekt1")
+		fmt.Println("  benlang --enable-auth ./meinspiel")
+		fmt.Println("  benlang --manage-users")
 		fmt.Println("  benlang neu ./neues-spiel")
 	}
 
 	flag.Parse()
+
+	if *manageUsers {
+		auth.HandleUserManagement()
+		return
+	}
 
 	if *showVersion {
 		fmt.Printf("BenLang Version %s\n", version)
@@ -56,27 +69,44 @@ func main() {
 		return
 	}
 
-	// Require a project path
-	if len(args) < 1 {
-		fmt.Println("🎮 BenLang - Programmieren für Kinder")
-		fmt.Println()
-		fmt.Println("Verwendung: benlang <projektordner>")
-		fmt.Println()
-		fmt.Println("Beispiele:")
-		fmt.Println("  benlang ./meinspiel")
-		fmt.Println("  benlang neu ./neues-spiel")
-		fmt.Println()
-		fmt.Println("Für mehr Hilfe: benlang --help")
-		os.Exit(1)
+	var projectPath string
+	if len(args) > 0 {
+		projectPath = args[0]
 	}
 
-	projectPath := args[0]
+	// Determine workDir
+	var workDir string
+	if *workDirFlag != "" {
+		absWorkDir, err := filepath.Abs(*workDirFlag)
+		if err != nil {
+			fmt.Printf("Fehler: Ungültiges Arbeitsverzeichnis: %v\n", err)
+			os.Exit(1)
+		}
+		workDir = absWorkDir
+	}
+
+	// If projectPath is relative and workDir is set, make it relative to workDir
+	if projectPath != "" && workDir != "" && !filepath.IsAbs(projectPath) {
+		projectPath = filepath.Join(workDir, projectPath)
+	} else if projectPath == "" {
+		// If no project path, use workDir or current dir
+		if workDir != "" {
+			projectPath = workDir
+		} else {
+			projectPath = "."
+		}
+	}
 
 	// Create or open project
 	proj, err := project.New(projectPath)
 	if err != nil {
 		fmt.Printf("Fehler: Konnte Projekt nicht öffnen: %v\n", err)
 		os.Exit(1)
+	}
+
+	// If workDir was not set via flag, use the parent of the project path
+	if workDir == "" {
+		workDir = filepath.Dir(proj.Path)
 	}
 
 	// Check if project has any .ben files, if not create default
@@ -107,6 +137,8 @@ func main() {
 
 	// Start server
 	srv := server.New(proj, *port)
+	srv.WorkDir = workDir
+	srv.AuthEnabled = *enableAuth
 	if err := srv.Start(); err != nil {
 		fmt.Printf("Fehler: Server konnte nicht gestartet werden: %v\n", err)
 		os.Exit(1)

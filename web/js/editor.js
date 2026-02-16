@@ -572,6 +572,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Project menu event listeners
+  document.getElementById('btnProjectMenu')?.addEventListener('click', () => {
+    loadProjectList();
+    document.getElementById('projectModal')?.classList.add('show');
+  });
+
+  document.getElementById('closeProjectModal')?.addEventListener('click', () => {
+    document.getElementById('projectModal')?.classList.remove('show');
+  });
+
+  document.getElementById('btnShowNewProject')?.addEventListener('click', () => {
+    document.getElementById('projectModal')?.classList.remove('show');
+    document.getElementById('newProjectModal')?.classList.add('show');
+  });
+
+  document.getElementById('closeNewProjectModal')?.addEventListener('click', () => {
+    document.getElementById('newProjectModal')?.classList.remove('show');
+  });
+
+  document.getElementById('btnCreateProject')?.addEventListener('click', createProject);
+
   // Close modals on outside click
   document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', (e) => {
@@ -598,8 +619,78 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// Project management
+async function loadProjectList() {
+  try {
+    const response = await fetch('/api/projekte/liste');
+    const projects = await response.json();
+    const list = document.getElementById('projectList');
+    if (!list) return;
+
+    list.innerHTML = '';
+    projects.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'project-item';
+      item.innerHTML = `
+        <div class="icon">📁</div>
+        <div class="name">${p}</div>
+      `;
+      item.onclick = () => openProject(p);
+      list.appendChild(item);
+    });
+  } catch (err) {
+    console.error('Fehler beim Laden der Projektliste:', err);
+  }
+}
+
+async function openProject(name) {
+  try {
+    const response = await fetch('/api/projekte/oeffnen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    const result = await response.json();
+    if (result.erfolg) {
+      document.getElementById('projectModal').classList.remove('show');
+      await loadFiles();
+      logToConsole('Projekt geladen: ' + name, 'success');
+    }
+  } catch (err) {
+    console.error('Fehler beim Öffnen des Projekts:', err);
+  }
+}
+
+async function createProject() {
+  const nameInput = document.getElementById('newProjectName');
+  const name = nameInput.value.trim();
+  if (!name) return;
+
+  try {
+    const response = await fetch('/api/projekte/neu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    const result = await response.json();
+    if (result.erfolg) {
+      document.getElementById('newProjectModal').classList.remove('show');
+      nameInput.value = '';
+      await loadFiles();
+      logToConsole('Neues Projekt erstellt: ' + name, 'success');
+    } else {
+      alert('Fehler: ' + (result.fehler || 'Unbekannter Fehler'));
+    }
+  } catch (err) {
+    console.error('Fehler beim Erstellen des Projekts:', err);
+  }
+}
+
 // Export for use in other scripts
 window.getEditorContent = getEditorContent;
 window.setEditorContent = setEditorContent;
 window.saveCurrentFile = saveCurrentFile;
 window.compileAndRun = compileAndRun;
+window.loadProjectList = loadProjectList;
+window.openProject = openProject;
+window.createProject = createProject;

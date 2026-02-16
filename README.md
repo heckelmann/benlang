@@ -44,6 +44,9 @@ make build-all
 # Eigenes Projekt öffnen
 ./benlang ./mein-spiel
 
+# Arbeitsverzeichnis festlegen (schränkt den Projekt-Browser ein)
+./benlang --workdir ./meine-spiele
+
 # Mit anderem Port starten
 ./benlang --port 8080 ./mein-spiel
 
@@ -52,6 +55,10 @@ make build-all
 ```
 
 Der Server startet und öffnet automatisch den Browser mit der IDE.
+
+### Projekt-Browser
+
+In der Web-IDE kannst du über das **Projekt-Menü** (oben links) neue Spiele erstellen oder zwischen deinen Abentereuern wechseln. Wenn du den Server mit `--workdir` startest, zeigt der Browser nur Projekte in diesem Ordner an.
 
 ## Schnellstart
 

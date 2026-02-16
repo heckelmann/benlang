@@ -1,21 +1,27 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BenLang - Programmieren für Kinder</title>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/project-menu.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
   <script defer src="/js/monaco-setup.js"></script>
   <script defer src="/js/editor.js"></script>
 </head>
+
 <body>
   <div class="app">
     <!-- Header -->
     <header class="header">
       <div class="header-left">
         <h1 class="logo">🎮 BenLang</h1>
-        <span class="project-name" id="projectName">Mein Projekt</span>
+        <div class="project-selector">
+          <span class="project-name" id="projectName">Mein Projekt</span>
+          <button class="btn btn-small btn-project" id="btnProjectMenu">Projekt ▾</button>
+        </div>
       </div>
       <div class="header-center">
         <button class="btn btn-primary" id="btnRun">
@@ -37,15 +43,15 @@
 
     <!-- Main Content -->
     <main class="main">
-        <!-- Editor Panel -->
-        <div class="panel panel-editor">
-          <div class="panel-header">
-            <span>Code</span>
-          </div>
-          <div class="editor-container" id="editorContainer">
-            <div id="monaco-editor" style="height: 100%; width: 100%;"></div>
-          </div>
+      <!-- Editor Panel -->
+      <div class="panel panel-editor">
+        <div class="panel-header">
+          <span>Code</span>
         </div>
+        <div class="editor-container" id="editorContainer">
+          <div id="monaco-editor" style="height: 100%; width: 100%;"></div>
+        </div>
+      </div>
 
       <!-- Resizer -->
       <div class="resizer" id="resizer"></div>
@@ -94,54 +100,128 @@
               📖 Vollständige Dokumentation öffnen
             </a>
           </div>
-          
+
           <h3>Schnellreferenz</h3>
-          
+
           <h4>Befehle</h4>
           <table class="help-table">
-            <tr><td><code>VAR name = wert</code></td><td>Variable erstellen</td></tr>
-            <tr><td><code>FIGUR name = LADE_BILD("bild.png")</code></td><td>Figur laden</td></tr>
-            <tr><td><code>WENN bedingung { }</code></td><td>Wenn-Abfrage</td></tr>
-            <tr><td><code>SOLANGE bedingung { }</code></td><td>Solange-Schleife</td></tr>
-            <tr><td><code>FUER x VON 1 BIS 10 { }</code></td><td>Zählschleife</td></tr>
-            <tr><td><code>FUNKTION name() { }</code></td><td>Funktion erstellen</td></tr>
+            <tr>
+              <td><code>VAR name = wert</code></td>
+              <td>Variable erstellen</td>
+            </tr>
+            <tr>
+              <td><code>FIGUR name = LADE_BILD("bild.png")</code></td>
+              <td>Figur laden</td>
+            </tr>
+            <tr>
+              <td><code>WENN bedingung { }</code></td>
+              <td>Wenn-Abfrage</td>
+            </tr>
+            <tr>
+              <td><code>SOLANGE bedingung { }</code></td>
+              <td>Solange-Schleife</td>
+            </tr>
+            <tr>
+              <td><code>FUER x VON 1 BIS 10 { }</code></td>
+              <td>Zählschleife</td>
+            </tr>
+            <tr>
+              <td><code>FUNKTION name() { }</code></td>
+              <td>Funktion erstellen</td>
+            </tr>
           </table>
-          
+
           <h4>Spiel-Befehle</h4>
           <table class="help-table">
-            <tr><td><code>SPIEL "Name"</code></td><td>Spielname festlegen</td></tr>
-            <tr><td><code>WENN_START { }</code></td><td>Beim Spielstart</td></tr>
-            <tr><td><code>WENN_IMMER { }</code></td><td>Jeden Frame</td></tr>
-            <tr><td><code>WENN_TASTE("links") { }</code></td><td>Bei Tastendruck</td></tr>
-            <tr><td><code>WENN_KOLLISION(a, b) { }</code></td><td>Bei Kollision</td></tr>
-            <tr><td><code>LOESCHEN(figur)</code></td><td>Figur löschen</td></tr>
+            <tr>
+              <td><code>SPIEL "Name"</code></td>
+              <td>Spielname festlegen</td>
+            </tr>
+            <tr>
+              <td><code>WENN_START { }</code></td>
+              <td>Beim Spielstart</td>
+            </tr>
+            <tr>
+              <td><code>WENN_IMMER { }</code></td>
+              <td>Jeden Frame</td>
+            </tr>
+            <tr>
+              <td><code>WENN_TASTE("links") { }</code></td>
+              <td>Bei Tastendruck</td>
+            </tr>
+            <tr>
+              <td><code>WENN_KOLLISION(a, b) { }</code></td>
+              <td>Bei Kollision</td>
+            </tr>
+            <tr>
+              <td><code>LOESCHEN(figur)</code></td>
+              <td>Figur löschen</td>
+            </tr>
           </table>
-          
+
           <h4>Zeichnen</h4>
           <table class="help-table">
-            <tr><td><code>ZEIGE_TEXT("Hallo", x, y, farbe, größe)</code></td><td>Text anzeigen</td></tr>
-            <tr><td><code>ZEICHNE_RECHTECK(x, y, b, h, farbe)</code></td><td>Rechteck zeichnen</td></tr>
-            <tr><td><code>ZEICHNE_KREIS(x, y, radius, farbe)</code></td><td>Kreis zeichnen</td></tr>
-            <tr><td><code>ZEICHNE_LINIE(x1, y1, x2, y2, farbe)</code></td><td>Linie zeichnen</td></tr>
+            <tr>
+              <td><code>ZEIGE_TEXT("Hallo", x, y, farbe, größe)</code></td>
+              <td>Text anzeigen</td>
+            </tr>
+            <tr>
+              <td><code>ZEICHNE_RECHTECK(x, y, b, h, farbe)</code></td>
+              <td>Rechteck zeichnen</td>
+            </tr>
+            <tr>
+              <td><code>ZEICHNE_KREIS(x, y, radius, farbe)</code></td>
+              <td>Kreis zeichnen</td>
+            </tr>
+            <tr>
+              <td><code>ZEICHNE_LINIE(x1, y1, x2, y2, farbe)</code></td>
+              <td>Linie zeichnen</td>
+            </tr>
           </table>
-          
+
           <h4>Eingabe</h4>
           <table class="help-table">
-            <tr><td><code>TASTE_GEDRUECKT("taste")</code></td><td>Taste gedrückt?</td></tr>
-            <tr><td><code>MAUS_X()</code>, <code>MAUS_Y()</code></td><td>Mausposition</td></tr>
-            <tr><td><code>MAUS_GEDRUECKT()</code></td><td>Maustaste gedrückt?</td></tr>
-            <tr><td><code>ZUFALL(min, max)</code></td><td>Zufallszahl</td></tr>
+            <tr>
+              <td><code>TASTE_GEDRUECKT("taste")</code></td>
+              <td>Taste gedrückt?</td>
+            </tr>
+            <tr>
+              <td><code>MAUS_X()</code>, <code>MAUS_Y()</code></td>
+              <td>Mausposition</td>
+            </tr>
+            <tr>
+              <td><code>MAUS_GEDRUECKT()</code></td>
+              <td>Maustaste gedrückt?</td>
+            </tr>
+            <tr>
+              <td><code>ZUFALL(min, max)</code></td>
+              <td>Zufallszahl</td>
+            </tr>
           </table>
-          
+
           <h4>Tasten</h4>
-          <p><code>"links"</code>, <code>"rechts"</code>, <code>"hoch"</code>, <code>"runter"</code>, <code>"leertaste"</code>, <code>"a"</code>-<code>"z"</code></p>
-          
+          <p><code>"links"</code>, <code>"rechts"</code>, <code>"hoch"</code>, <code>"runter"</code>,
+            <code>"leertaste"</code>, <code>"a"</code>-<code>"z"</code>
+          </p>
+
           <h4>Figur-Eigenschaften</h4>
           <table class="help-table">
-            <tr><td><code>figur.x</code>, <code>figur.y</code></td><td>Position</td></tr>
-            <tr><td><code>figur.breite</code>, <code>figur.hoehe</code></td><td>Größe</td></tr>
-            <tr><td><code>figur.drehung</code></td><td>Drehung in Grad</td></tr>
-            <tr><td><code>figur.sichtbar</code></td><td>Sichtbar (WAHR/FALSCH)</td></tr>
+            <tr>
+              <td><code>figur.x</code>, <code>figur.y</code></td>
+              <td>Position</td>
+            </tr>
+            <tr>
+              <td><code>figur.breite</code>, <code>figur.hoehe</code></td>
+              <td>Größe</td>
+            </tr>
+            <tr>
+              <td><code>figur.drehung</code></td>
+              <td>Drehung in Grad</td>
+            </tr>
+            <tr>
+              <td><code>figur.sichtbar</code></td>
+              <td>Sichtbar (WAHR/FALSCH)</td>
+            </tr>
           </table>
         </div>
       </div>
@@ -173,17 +253,76 @@
           <div class="color-picker-preview" style="margin-top: 15px; text-align: center;">
             <span class="color-picker-hex" id="colorPickerHex">#6bb88a</span>
           </div>
-          <div class="color-picker-presets" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px;">
-            <div class="color-preset" data-color="#00d4ff" style="background-color: #00d4ff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
-            <div class="color-preset" data-color="#00ff9d" style="background-color: #00ff9d; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
-            <div class="color-preset" data-color="#ffcc00" style="background-color: #ffcc00; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
-            <div class="color-preset" data-color="#ff79c6" style="background-color: #ff79c6; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
-            <div class="color-preset" data-color="#bd93f9" style="background-color: #bd93f9; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
-            <div class="color-preset" data-color="#ffffff" style="background-color: #ffffff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
-            <div class="color-preset" data-color="#0d1117" style="background-color: #0d1117; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
-            <div class="color-preset" data-color="#ff6b6b" style="background-color: #ff6b6b; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
-            <div class="color-preset" data-color="#8be9fd" style="background-color: #8be9fd; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
-            <div class="color-preset" data-color="#50fa7b" style="background-color: #50fa7b; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);"></div>
+          <div class="color-picker-presets"
+            style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px;">
+            <div class="color-preset" data-color="#00d4ff"
+              style="background-color: #00d4ff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+            </div>
+            <div class="color-preset" data-color="#00ff9d"
+              style="background-color: #00ff9d; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+            </div>
+            <div class="color-preset" data-color="#ffcc00"
+              style="background-color: #ffcc00; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+            </div>
+            <div class="color-preset" data-color="#ff79c6"
+              style="background-color: #ff79c6; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+            </div>
+            <div class="color-preset" data-color="#bd93f9"
+              style="background-color: #bd93f9; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+            </div>
+            <div class="color-preset" data-color="#ffffff"
+              style="background-color: #ffffff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+            </div>
+            <div class="color-preset" data-color="#0d1117"
+              style="background-color: #0d1117; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+            </div>
+            <div class="color-preset" data-color="#ff6b6b"
+              style="background-color: #ff6b6b; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+            </div>
+            <div class="color-preset" data-color="#8be9fd"
+              style="background-color: #8be9fd; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+            </div>
+            <div class="color-preset" data-color="#50fa7b"
+              style="background-color: #50fa7b; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Project Selection Modal -->
+    <div class="modal" id="projectModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Meine Projekte</h2>
+          <button class="modal-close" id="closeProjectModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="hint">Wähle ein Projekt aus, an dem du weiterarbeiten möchtest:</p>
+          <div class="project-list" id="projectList">
+            <!-- Project list will be loaded here -->
+          </div>
+          <div class="project-actions">
+            <button class="btn btn-primary" id="btnShowNewProject">✨ Neues Projekt erstellen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Project Modal -->
+    <div class="modal" id="newProjectModal">
+      <div class="modal-content modal-small">
+        <div class="modal-header">
+          <h2>Neues Abenteuer starten</h2>
+          <button class="modal-close" id="closeNewProjectModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="newProjectName">Wie soll dein Spiel heißen?</label>
+            <input type="text" id="newProjectName" placeholder="z.B. MeinSuperSpiel" dir="ltr">
+          </div>
+          <p class="hint">Es wird ein neuer Ordner für dein Spiel erstellt.</p>
+          <div class="modal-footer">
+            <button class="btn btn-primary" id="btnCreateProject">Los geht's!</button>
           </div>
         </div>
       </div>
@@ -193,4 +332,5 @@
   <!-- Runtime -->
   <script src="/js/runtime/benlang-runtime.js"></script>
 </body>
+
 </html>
