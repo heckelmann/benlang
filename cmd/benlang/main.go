@@ -88,41 +88,54 @@ func main() {
 	// If projectPath is relative and workDir is set, make it relative to workDir
 	if projectPath != "" && workDir != "" && !filepath.IsAbs(projectPath) {
 		projectPath = filepath.Join(workDir, projectPath)
-	} else if projectPath == "" {
-		// If no project path, use workDir or current dir
-		if workDir != "" {
-			projectPath = workDir
-		} else {
-			projectPath = "."
+	} else if projectPath == "" && workDir == "" {
+		// Only default to current dir if workDir is NOT set
+		projectPath = "."
+	}
+
+	// Determine project to open
+	var proj *project.Project
+	if projectPath != "" {
+		p, err := project.New(projectPath)
+		if err != nil {
+			fmt.Printf("Fehler: Konnte Projekt nicht öffnen: %v\n", err)
+			os.Exit(1)
 		}
+		proj = p
+
+		// Check if project has any .ben files, if not create default
+		files, _ := proj.ListFiles()
+		hasBenFile := false
+		for _, f := range files {
+			if len(f.Name) > 4 && f.Name[len(f.Name)-4:] == ".ben" {
+				hasBenFile = true
+				break
+			}
+		}
+
+		if !hasBenFile {
+			fmt.Println("📁 Erstelle Standardprojekt...")
+			if err := proj.CreateDefaultProject(); err != nil {
+				fmt.Printf("Warnung: Konnte Standardprojekt nicht erstellen: %v\n", err)
+			}
+		}
+	} else if workDir == "" {
+		// No project path and no workDir -> default to current directory
+		p, err := project.New(".")
+		if err != nil {
+			fmt.Printf("Fehler: Konnte Verzeichnis nicht öffnen: %v\n", err)
+			os.Exit(1)
+		}
+		proj = p
 	}
 
-	// Create or open project
-	proj, err := project.New(projectPath)
-	if err != nil {
-		fmt.Printf("Fehler: Konnte Projekt nicht öffnen: %v\n", err)
-		os.Exit(1)
-	}
-
-	// If workDir was not set via flag, use the parent of the project path
+	// If workDir was not set via flag, use the parent of the project path or current dir
 	if workDir == "" {
-		workDir = filepath.Dir(proj.Path)
-	}
-
-	// Check if project has any .ben files, if not create default
-	files, _ := proj.ListFiles()
-	hasBenFile := false
-	for _, f := range files {
-		if len(f.Name) > 4 && f.Name[len(f.Name)-4:] == ".ben" {
-			hasBenFile = true
-			break
-		}
-	}
-
-	if !hasBenFile {
-		fmt.Println("📁 Erstelle Standardprojekt...")
-		if err := proj.CreateDefaultProject(); err != nil {
-			fmt.Printf("Warnung: Konnte Standardprojekt nicht erstellen: %v\n", err)
+		if proj != nil {
+			workDir = filepath.Dir(proj.Path)
+		} else {
+			abs, _ := filepath.Abs(".")
+			workDir = abs
 		}
 	}
 

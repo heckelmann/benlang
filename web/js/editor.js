@@ -79,8 +79,13 @@ async function loadFiles() {
     const response = await fetch('/api/dateien');
     const data = await response.json();
 
-    if (data.projekt && projectName) {
-      projectName.textContent = data.projekt;
+    if (data.projekt) {
+      if (projectName) projectName.textContent = data.projekt;
+    } else {
+      if (projectName) projectName.textContent = 'Kein Projekt geladen';
+      // Automatically show project modal if no project is loaded
+      document.getElementById('projectModal')?.classList.add('show');
+      loadProjectList();
     }
 
     fileModels = {};
@@ -103,8 +108,14 @@ async function loadFiles() {
       setEditorContent(content);
     } else {
       currentFile = 'hauptspiel.ben';
-      fileModels[currentFile] = getDefaultCode();
-      setEditorContent(getDefaultCode());
+      if (data.projekt) {
+        // Only set default code if we actually have a project
+        fileModels[currentFile] = getDefaultCode();
+        setEditorContent(getDefaultCode());
+      } else {
+        // Clear editor if no project
+        setEditorContent('// Bitte wähle ein Projekt aus oder erstelle ein neues.');
+      }
     }
 
     renderFileList();
@@ -115,8 +126,6 @@ async function loadFiles() {
   } catch (err) {
     console.error('Fehler beim Laden der Dateien:', err);
     currentFile = 'hauptspiel.ben';
-    fileModels[currentFile] = getDefaultCode();
-    renderFileList();
     setEditorContent(getDefaultCode());
     return false;
   }
@@ -632,7 +641,11 @@ async function loadProjectList() {
       const item = document.createElement('div');
       item.className = 'project-item';
       item.innerHTML = `
-        <div class="icon">📁</div>
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </div>
         <div class="name">${p}</div>
       `;
       item.onclick = () => openProject(p);

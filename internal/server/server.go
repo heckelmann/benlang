@@ -106,7 +106,11 @@ func (s *Server) Start() error {
 
 	addr := fmt.Sprintf(":%d", s.port)
 	fmt.Printf("🎮 BenLang Server gestartet auf http://localhost%s\n", addr)
-	fmt.Printf("📁 Projekt: %s\n", s.project.Path)
+	if s.project != nil {
+		fmt.Printf("📁 Projekt: %s\n", s.project.Path)
+	} else {
+		fmt.Printf("📁 Kein Projekt geladen (Arbeitsverzeichnis: %s)\n", s.WorkDir)
+	}
 	if s.AuthEnabled {
 		fmt.Println("🔒 Authentifizierung ist AKTIVIERT")
 	}
@@ -210,7 +214,6 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login.html", http.StatusSeeOther)
 }
 
-// handleDateien returns a list of project files
 func (s *Server) handleDateien(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -218,9 +221,20 @@ func (s *Server) handleDateien(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.project == nil {
+		response := map[string]interface{}{
+			"projekt": nil,
+			"dateien": []interface{}{},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	files, err := s.project.ListFiles()
 	projectName := s.project.Name
-	s.mu.RUnlock()
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -230,9 +244,7 @@ func (s *Server) handleDateien(w http.ResponseWriter, r *http.Request) {
 	// Load content for .ben files
 	for i, f := range files {
 		if strings.HasSuffix(f.Name, ".ben") {
-			s.mu.RLock()
 			content, err := s.project.ReadFile(f.Name)
-			s.mu.RUnlock()
 			if err == nil {
 				files[i].Content = content
 			}
@@ -259,8 +271,14 @@ func (s *Server) handleDatei(w http.ResponseWriter, r *http.Request) {
 		}
 
 		s.mu.RLock()
+		defer s.mu.RUnlock()
+
+		if s.project == nil {
+			http.Error(w, "Kein Projekt geladen", http.StatusNotFound)
+			return
+		}
+
 		content, err := s.project.ReadFile(name)
-		s.mu.RUnlock()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -351,6 +369,14 @@ func (s *Server) handleBilder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.project == nil {
+		http.Error(w, "Kein Projekt geladen", http.StatusForbidden)
+		return
+	}
+
 	// Parse multipart form (max 10MB)
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -372,9 +398,7 @@ func (s *Server) handleBilder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save to project
-	s.mu.Lock()
 	err = s.project.SaveImage(header.Filename, content)
-	s.mu.Unlock()
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -588,7 +612,10 @@ func (s *Server) handleSystemInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.mu.RLock()
-	projectName := s.project.Name
+	var projectName interface{} = nil
+	if s.project != nil {
+		projectName = s.project.Name
+	}
 	s.mu.RUnlock()
 
 	w.Header().Set("Content-Type", "application/json")
