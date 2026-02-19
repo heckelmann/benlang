@@ -398,11 +398,6 @@ function createEditor(container, initialContent) {
       updateSymbolTable(content);
     }
 
-    // Update hex color decorations
-    if (typeof createHexColorDecorations === 'function') {
-      createHexColorDecorations(monacoEditor);
-    }
-
     hasUnsavedChanges = true;
     updateFileTab();
   });
@@ -412,31 +407,6 @@ function createEditor(container, initialContent) {
     saveCurrentFile();
   });
 
-  // Create hex color decorations after editor is ready
-  setTimeout(() => {
-    if (typeof createHexColorDecorations === 'function') {
-      createHexColorDecorations(monacoEditor);
-    }
-  }, 100);
-
-  // Color picker on click
-  monacoEditor.onMouseDown((e) => {
-    if (e.target.type === monaco.editor.MouseTargetType.CONTENT_TEXT) {
-      const position = e.target.position;
-      if (position) {
-        const lineNumber = position.lineNumber;
-        const column = position.column;
-        const lineContent = monacoEditor.getModel().getLineContent(lineNumber);
-        const colorMatch = lineContent.match(new RegExp('"(#[0-9A-Fa-f]{3,8})"'));
-        if (colorMatch) {
-          const colorIndex = lineContent.indexOf(colorMatch[0]);
-          if (column > colorIndex && column <= colorIndex + colorMatch[0].length) {
-            showColorPicker(colorMatch[1], colorIndex, lineNumber);
-          }
-        }
-      }
-    }
-  });
 
   return {
     getValue: () => monacoEditor.getValue(),
@@ -494,10 +464,6 @@ function applyColorChange(newColor) {
   colorPickerState.color = newColor;
   document.getElementById('colorPickerHex').textContent = newColor;
 
-  // Update hex color decorations
-  if (typeof createHexColorDecorations === 'function') {
-    createHexColorDecorations(monacoEditor);
-  }
 }
 
 // Initialize app

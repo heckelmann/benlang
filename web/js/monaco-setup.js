@@ -196,8 +196,52 @@ function initMonaco() {
     }
   });
 
+  // Native Monaco color provider: shows VSCode-style colored swatches
+  // and opens the built-in color picker on click.
+  monaco.languages.registerColorProvider('benlang', {
+    provideDocumentColors: function (model) {
+      const text = model.getValue();
+      const colors = [];
+      const hexRegex = /"(#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3}))"/g;
+      let match;
+      while ((match = hexRegex.exec(text)) !== null) {
+        const hexDigits = match[2]; // e.g. "ff0000" or "f0f"
+        let r, g, b;
+        if (hexDigits.length === 3) {
+          r = parseInt(hexDigits[0] + hexDigits[0], 16) / 255;
+          g = parseInt(hexDigits[1] + hexDigits[1], 16) / 255;
+          b = parseInt(hexDigits[2] + hexDigits[2], 16) / 255;
+        } else {
+          r = parseInt(hexDigits.slice(0, 2), 16) / 255;
+          g = parseInt(hexDigits.slice(2, 4), 16) / 255;
+          b = parseInt(hexDigits.slice(4, 6), 16) / 255;
+        }
+        // Range covers just the #color part (inside the quotes)
+        const colorStart = match.index + 1; // skip opening "
+        const startPos = model.getPositionAt(colorStart);
+        const endPos = model.getPositionAt(colorStart + match[1].length);
+        colors.push({
+          color: { red: r, green: g, blue: b, alpha: 1 },
+          range: {
+            startLineNumber: startPos.lineNumber,
+            startColumn: startPos.column,
+            endLineNumber: endPos.lineNumber,
+            endColumn: endPos.column
+          }
+        });
+      }
+      return colors;
+    },
+    provideColorPresentations: function (model, colorInfo) {
+      const c = colorInfo.color;
+      const toHex = (v) => Math.round(v * 255).toString(16).padStart(2, '0');
+      const hex = '#' + toHex(c.red) + toHex(c.green) + toHex(c.blue);
+      return [{ label: hex }];
+    }
+  });
+
   monaco.languages.registerCompletionItemProvider('benlang', {
-    provideCompletionItems: function(model, position) {
+    provideCompletionItems: function (model, position) {
       const textUntilPosition = model.getValueInRange({
         startLineNumber: 1,
         startColumn: 1,
@@ -281,7 +325,7 @@ function initMonaco() {
   });
 
   monaco.languages.registerHoverProvider('benlang', {
-    provideHover: function(model, position) {
+    provideHover: function (model, position) {
       const word = model.getWordAtPosition(position);
       if (!word) return null;
 
@@ -301,7 +345,7 @@ function initMonaco() {
   });
 
   monaco.languages.registerSignatureHelpProvider('benlang', {
-    provideSignatureHelp: function(model, position) {
+    provideSignatureHelp: function (model, position) {
       const textUntilPosition = model.getValueInRange({
         startLineNumber: 1,
         startColumn: 1,
@@ -336,16 +380,6 @@ function initMonaco() {
 
   monacoLoaded = true;
 
-  const style = document.createElement('style');
-  style.textContent = `
-    .hex-color-bg {
-      background-color: rgba(80, 80, 80, 0.3);
-      padding: 0 2px;
-      border-radius: 3px;
-    }
-  `;
-  document.head.appendChild(style);
-
   monacoReadyCallbacks.forEach(cb => cb());
 }
 
@@ -357,62 +391,9 @@ function onMonacoReady(callback) {
   }
 }
 
-function createHexColorDecorations(editor) {
-  if (!editor || typeof monaco === 'undefined') return;
-
-  const model = editor.getModel();
-  if (!model) return;
-
-  const code = model.getValue();
-  const decorations = [];
-
-  const hexRegex = /"#([0-9A-Fa-f]{3,8})"/g;
-  let match;
-  while ((match = hexRegex.exec(code)) !== null) {
-    const fullMatch = match[0];
-    const hexColor = match[1];
-    const startIndex = match.index;
-
-    const startPos = model.getPositionAt(startIndex);
-    const endPos = model.getPositionAt(startIndex + fullMatch.length);
-
-    let textColor;
-    if (hexColor.length <= 4) {
-      const r = parseInt(hexColor[0] + hexColor[0], 16);
-      const g = parseInt(hexColor[1] + hexColor[1], 16);
-      const b = parseInt(hexColor[2] + hexColor[2], 16);
-      textColor = `rgb(${r}, ${g}, ${b})`;
-    } else {
-      const r = parseInt(hexColor.slice(0, 2), 16);
-      const g = parseInt(hexColor.slice(2, 4), 16);
-      const b = parseInt(hexColor.slice(4, 6), 16);
-      textColor = `rgb(${r}, ${g}, ${b})`;
-    }
-
-    const hexColorClass = `hex-color-${hexColor.replace(/[^a-fA-F0-9]/g, '_')}`;
-    const styleId = `style-hex-${hexColor.replace(/[^a-fA-F0-9]/g, '_')}`;
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement('style');
-      style.id = styleId;
-      style.textContent = `.${hexColorClass} { color: ${textColor} !important; font-weight: bold; }`;
-      document.head.appendChild(style);
-    }
-
-    decorations.push({
-      range: new monaco.Range(startPos.lineNumber, startPos.column + 1, endPos.lineNumber, endPos.column),
-      options: {
-        inlineClassName: hexColorClass,
-        hoverMessage: { value: `Color: #${hexColor}` }
-      }
-    });
-  }
-
-  editor.deltaDecorations([], decorations);
-}
-
 function loadMonaco() {
   require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
-  require(['vs/editor/editor.main'], function() {
+  require(['vs/editor/editor.main'], function () {
     initMonaco();
   });
 }
@@ -424,5 +405,4 @@ if (typeof window !== 'undefined') {
   window.builtinFunctionSignatures = builtinFunctionSignatures;
   window.symbolTable = symbolTable;
   window.figurProperties = figurProperties;
-  window.createHexColorDecorations = createHexColorDecorations;
 }
