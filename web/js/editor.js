@@ -510,6 +510,24 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('uploadModal')?.classList.add('show');
   });
 
+  // Editor panel actions
+  document.getElementById('btnUndo')?.addEventListener('click', () => {
+    monacoEditor?.focus();
+    monacoEditor?.trigger('user', 'undo');
+  });
+  document.getElementById('btnRedo')?.addEventListener('click', () => {
+    monacoEditor?.focus();
+    monacoEditor?.trigger('user', 'redo');
+  });
+  document.getElementById('btnCopy')?.addEventListener('click', () => {
+    monacoEditor?.focus();
+    monacoEditor?.getAction('editor.action.clipboardCopyAction').run();
+  });
+  document.getElementById('btnPaste')?.addEventListener('click', () => {
+    monacoEditor?.focus();
+    monacoEditor?.getAction('editor.action.clipboardPasteAction').run();
+  });
+
   // Color picker event listeners
   document.getElementById('closeColorPicker')?.addEventListener('click', () => {
     hideColorPicker();

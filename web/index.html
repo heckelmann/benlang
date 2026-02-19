@@ -47,6 +47,12 @@
       <div class="panel panel-editor">
         <div class="panel-header">
           <span>Code</span>
+          <div class="panel-actions">
+            <button class="btn btn-small" id="btnUndo" title="Rückgängig (Strg+Z)">↩️ Rückgängig</button>
+            <button class="btn btn-small" id="btnRedo" title="Wiederholen (Strg+Y)">↪️ Wiederholen</button>
+            <button class="btn btn-small" id="btnCopy" title="Kopieren (Strg+C)">📋 Kopieren</button>
+            <button class="btn btn-small" id="btnPaste" title="Einfügen (Strg+V)">📥 Einfügen</button>
+          </div>
         </div>
         <div class="editor-container" id="editorContainer">
           <div id="monaco-editor" style="height: 100%; width: 100%;"></div>

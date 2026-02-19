@@ -164,6 +164,18 @@ body {
   font-weight: bold;
 }
 
+.panel-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.panel-actions .btn-small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+}
+
 .game-title {
   color: var(--warning);
 }
@@ -493,13 +505,13 @@ body {
   .main {
     flex-direction: column;
   }
-  
+
   .resizer {
     width: 100%;
     height: 6px;
     cursor: row-resize;
   }
-  
+
   .panel-editor,
   .panel-preview {
     min-width: 100%;
