@@ -17,6 +17,7 @@
     bilder: {},
     toene: {},
     tasten: {},
+    tastenFrame: {}, // Keys pressed in the current frame
     maus: { x: 0, y: 0, gedrueckt: false },
 
     // Text input state
@@ -94,6 +95,8 @@
           return;
         }
 
+        if (e.repeat) return; // Ignore browser's auto-repeat events
+
         // Skip if input just ended (prevents Enter/Space from triggering handlers)
         if (this.eingabeGeradeBeendet) {
           this.eingabeGeradeBeendet = false;
@@ -102,6 +105,7 @@
 
         const taste = this.mapKey(e.key);
         this.tasten[taste] = true;
+        this.tastenFrame[taste] = true; // Mark as just pressed this frame
         this.letzteGedrueckteTaste = taste;
 
         // Prevent browser default behavior only for specific game keys 
@@ -294,6 +298,9 @@
 
       // Call immer handlers (update)
       this.immerHandlers.forEach(handler => handler(deltaTime));
+
+      // Clear just-pressed state after all handlers run
+      this.tastenFrame = {};
 
       // Check collisions
       this.checkCollisions();
@@ -516,6 +523,10 @@
 
     tasteGedrueckt: function (taste) {
       return this.tasten[taste.toLowerCase()] || false;
+    },
+
+    tasteGetippt: function (taste) {
+      return this.tastenFrame[taste.toLowerCase()] || false;
     },
 
     gedrueckteTaste: function () {

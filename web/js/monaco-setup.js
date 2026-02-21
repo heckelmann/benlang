@@ -16,7 +16,7 @@ const keywords = [
 
 const builtinFunctions = [
   'LADE_BILD', 'BILD_WECHSELN', 'SPIELE_TON', 'ZEIGE_TEXT', 'ZEICHNE_RECHTECK', 'ZEICHNE_KREIS',
-  'ZEICHNE_LINIE', 'TASTE_GEDRUECKT', 'GEDRUECKTE_TASTE', 'MAUS_X', 'MAUS_Y',
+  'ZEICHNE_LINIE', 'TASTE_GEDRUECKT', 'TASTE_GETIPPT', 'GEDRUECKTE_TASTE', 'MAUS_X', 'MAUS_Y',
   'MAUS_GEDRUECKT', 'ZUFALL', 'RUNDEN', 'ABSOLUT',
   'WURZEL', 'SINUS', 'KOSINUS', 'SCHREIBE', 'FRAGE', 'WARTE',
   'LOESCHEN', 'LADE_LEVEL', 'GEHE_ZU', 'DREHE', 'SKALIERE',
@@ -32,6 +32,7 @@ const builtinFunctionSignatures = {
   'ZEICHNE_KREIS': { params: '(x, y, radius, farbe)', desc: 'Zeichnet einen Kreis' },
   'ZEICHNE_LINIE': { params: '(x1, y1, x2, y2, farbe)', desc: 'Zeichnet eine Linie' },
   'TASTE_GEDRUECKT': { params: '(taste)', desc: 'Gibt WAHR zurueck wenn Taste gedrueckt ist' },
+  'TASTE_GETIPPT': { params: '(taste)', desc: 'Gibt nur beim ersten Druecken WAHR zurueck' },
   'MAUS_X': { params: '()', desc: 'X-Position der Maus' },
   'MAUS_Y': { params: '()', desc: 'Y-Position der Maus' },
   'MAUS_GEDRUECKT': { params: '()', desc: 'Gibt WAHR zurueck wenn Maustaste gedrueckt' },

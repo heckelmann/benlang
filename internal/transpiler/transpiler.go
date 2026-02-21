@@ -325,6 +325,7 @@ func (t *Transpiler) transpileCallExpression(ce *parser.CallExpression) string {
 		"ZEICHNE_LINIE":    "_benlang.zeichneLinie",
 		"TASTE_GEDRUECKT":  "_benlang.tasteGedrueckt",
 		"TASTE_GEDRÜCKT":   "_benlang.tasteGedrueckt",
+		"TASTE_GETIPPT":    "_benlang.tasteGetippt",
 		"GEDRUECKTE_TASTE": "_benlang.gedrueckteTaste",
 		"GEDRÜCKTE_TASTE":  "_benlang.gedrueckteTaste",
 		"MAUS_X":           "_benlang.mausX",

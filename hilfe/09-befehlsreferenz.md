@@ -230,7 +230,15 @@ WENN TASTE_GEDRUECKT("links") {
     // Solange Taste gehalten wird
 }
 ```
-Gibt WAHR zurück wenn die Taste gerade gedrückt ist.
+Gibt WAHR zurück wenn die Taste gerade gedrückt ist. Dies ist ideal für Bewegungen.
+
+### TASTE_GETIPPT
+```benlang
+WENN TASTE_GETIPPT("leertaste") {
+    // Wird nur einmal beim Drücken ausgelöst
+}
+```
+Gibt nur dann WAHR zurück, wenn die Taste in diesem Moment gedrückt wurde. Wenn man die Taste gedrückt hält, bleibt es danach FALSCH. Dies ist ideal für einmalige Aktionen wie Springen oder Schießen.
 
 ### GEDRUECKTE_TASTE
 ```benlang
