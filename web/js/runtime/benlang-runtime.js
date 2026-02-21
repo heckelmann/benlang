@@ -422,10 +422,10 @@
       this.figuren.push(figur);
 
       // Add methods to the figure itself
-      figur.LOESCHEN = () => this.loescheFigur(figur);
-      figur.GEHE_ZU = (x, y) => { figur.x = x; figur.y = y; };
-      figur.DREHE = (winkel) => { figur.drehung += winkel; };
-      figur.SKALIERE = (faktor) => { figur.skalaX = faktor; figur.skalaY = faktor; };
+      figur.loeschen = () => this.loescheFigur(figur);
+      figur.gehe_zu = (x, y) => { figur.x = x; figur.y = y; };
+      figur.drehe = (winkel) => { figur.drehung += winkel; };
+      figur.skaliere = (faktor) => { figur.skalaX = faktor; figur.skalaY = faktor; };
 
       return figur;
     },

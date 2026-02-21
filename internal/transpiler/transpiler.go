@@ -345,6 +345,9 @@ func (t *Transpiler) transpileCallExpression(ce *parser.CallExpression) string {
 		"LAENGE":           "_benlang.laenge",
 		"ZEICHEN":          "_benlang.zeichen",
 		"GROSSBUCHSTABEN":  "_benlang.grossbuchstaben",
+		"GEHE_ZU":          "_benlang.geheZu",
+		"DREHE":            "_benlang.drehe",
+		"SKALIERE":         "_benlang.skaliere",
 	}
 
 	args := make([]string, len(ce.Arguments))

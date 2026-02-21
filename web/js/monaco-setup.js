@@ -55,7 +55,11 @@ const builtinFunctionSignatures = {
   'GROSSBUCHSTABEN': { params: '(text)', desc: 'Wandelt Text in Grossbuchstaben um' }
 };
 
-const figurProperties = ['.x', '.y', '.breite', '.hoehe', '.sichtbar', '.drehung', '.geschwindigkeit'];
+const figurProperties = [
+  '.x', '.y', '.breite', '.hoehe', '.sichtbar', '.drehung',
+  '.geschwindigkeitX', '.geschwindigkeitY',
+  '.GEHE_ZU(x, y)', '.DREHE(winkel)', '.SKALIERE(faktor)', '.LOESCHEN()'
+];
 
 // Symbol table for user-defined symbols
 let symbolTable = {
@@ -265,11 +269,15 @@ function initMonaco() {
           figurProperties.forEach(prop => {
             const propName = prop.substring(1);
             if (propName.toLowerCase().startsWith(partialProp.toLowerCase())) {
+              const isMethod = prop.includes('(');
               suggestions.push({
                 label: prop,
-                kind: monaco.languages.CompletionItemKind.Property,
-                insertText: prop,
-                insertTextRules: monaco.languages.CompletionItemInsertTextRule.None
+                kind: isMethod ? monaco.languages.CompletionItemKind.Method : monaco.languages.CompletionItemKind.Property,
+                insertText: isMethod ? prop.substring(1).replace(/\(\w+(, \w+)*\)/, (match) => {
+                  const params = match.slice(1, -1).split(', ');
+                  return '(' + params.map((p, i) => `\${${i + 1}:${p}}`).join(', ') + ')';
+                }) : prop.substring(1),
+                insertTextRules: isMethod ? monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet : monaco.languages.CompletionItemInsertTextRule.None
               });
             }
           });
