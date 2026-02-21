@@ -139,6 +139,8 @@ function initMonaco() {
     return;
   }
 
+  if (monacoLoaded) return; // Prevent double initialization
+
   monaco.editor.defineTheme('benlang-dark', {
     base: 'vs-dark',
     inherit: true,
@@ -202,7 +204,7 @@ function initMonaco() {
     provideDocumentColors: function (model) {
       const text = model.getValue();
       const colors = [];
-      const hexRegex = /"(#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3}))"/g;
+      const hexRegex = /"(#([0-9A-Fa-f]{8}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{3}))"/g;
       let match;
       while ((match = hexRegex.exec(text)) !== null) {
         const hexDigits = match[2]; // e.g. "ff0000" or "f0f"
@@ -380,7 +382,11 @@ function initMonaco() {
 
   monacoLoaded = true;
 
-  monacoReadyCallbacks.forEach(cb => cb());
+  // Execute and clear callbacks
+  while (monacoReadyCallbacks.length > 0) {
+    const cb = monacoReadyCallbacks.shift();
+    if (typeof cb === 'function') cb();
+  }
 }
 
 function onMonacoReady(callback) {
@@ -391,7 +397,11 @@ function onMonacoReady(callback) {
   }
 }
 
+let monacoRequireStarted = false;
 function loadMonaco() {
+  if (monacoRequireStarted) return;
+  monacoRequireStarted = true;
+
   require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
   require(['vs/editor/editor.main'], function () {
     initMonaco();

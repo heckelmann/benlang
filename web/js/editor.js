@@ -93,6 +93,7 @@ async function loadFiles() {
       data.dateien.forEach(f => {
         fileModels[f.name] = f.inhalt || '';
       });
+      logToConsole('Dateien geladen: ' + data.dateien.length, 'log');
     }
 
     // Sort files: hauptspiel.ben first
@@ -485,14 +486,21 @@ document.addEventListener('DOMContentLoaded', () => {
   gameTitle = document.getElementById('gameTitle');
 
   // Wait for Monaco to be ready, then create editor
+  let monacoLoadingStarted = false;
   function waitForMonaco() {
     if (typeof monaco !== 'undefined') {
       window.onMonacoReady(() => {
-        createEditor(document.getElementById('monaco-editor'), getDefaultCode());
-        loadFiles();
+        // Only create editor if it doesn't exist yet
+        if (!monacoEditor) {
+          createEditor(document.getElementById('monaco-editor'), getDefaultCode());
+          loadFiles();
+        }
       });
     } else if (typeof window.loadMonaco === 'function') {
-      window.loadMonaco();
+      if (!monacoLoadingStarted) {
+        monacoLoadingStarted = true;
+        window.loadMonaco();
+      }
       setTimeout(waitForMonaco, 100);
     } else {
       setTimeout(waitForMonaco, 100);
@@ -570,6 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (path) {
         logToConsole('Verwende: LADE_BILD("' + path + '")', 'log');
         document.getElementById('uploadModal')?.classList.remove('show');
+        await loadFiles();
       }
     }
   });
@@ -630,6 +639,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Project management
 async function showGallery() {
+  await loadFiles(); // Latest files from server
+
   const modal = document.getElementById('galleryModal');
   const grid = document.getElementById('galleryGrid');
   const hint = document.getElementById('galleryEmptyHint');
@@ -645,6 +656,8 @@ async function showGallery() {
     name.toLowerCase().endsWith('.jpeg') ||
     name.toLowerCase().endsWith('.gif')
   );
+  logToConsole('Galerie Debug - Bilder gefunden: ' + images.join(', '), 'log');
+  logToConsole('Galerie Debug - Alle Dateien: ' + Object.keys(fileModels).length, 'log');
 
   if (images.length === 0) {
     if (hint) hint.style.display = 'block';
