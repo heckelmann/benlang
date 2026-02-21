@@ -206,22 +206,41 @@ func (t *Transpiler) transpileGameDeclaration(gd *parser.GameDeclaration) string
 
 func (t *Transpiler) transpileEventHandler(eh *parser.EventHandler) string {
 	var out strings.Builder
+	isTopLevel := t.indentLevel == 0
 
 	switch eh.EventType {
 	case "start":
-		out.WriteString(fmt.Sprintf("%s_benlang.wennStart(async function() {\n", t.indent()))
+		if isTopLevel {
+			out.WriteString(fmt.Sprintf("%s_benlang.wennStart(async function() {\n", t.indent()))
+		} else {
+			out.WriteString(fmt.Sprintf("%s(async function() {\n", t.indent()))
+		}
 	case "immer":
-		out.WriteString(fmt.Sprintf("%s_benlang.wennImmer(async function() {\n", t.indent()))
+		if isTopLevel {
+			out.WriteString(fmt.Sprintf("%s_benlang.wennImmer(async function() {\n", t.indent()))
+		} else {
+			out.WriteString(fmt.Sprintf("%s(async function() {\n", t.indent()))
+		}
 	case "taste":
 		if len(eh.Parameters) > 0 {
 			taste := t.transpileExpression(eh.Parameters[0])
-			out.WriteString(fmt.Sprintf("%s_benlang.wennTaste(%s, async function() {\n", t.indent(), taste))
+			if isTopLevel {
+				out.WriteString(fmt.Sprintf("%s_benlang.wennTaste(%s, async function() {\n", t.indent(), taste))
+			} else {
+				// Inside a loop/block, make it work like an if-check for TASTE_GETIPPT
+				out.WriteString(fmt.Sprintf("%sif (_benlang.tasteGetippt(%s)) {\n", t.indent(), taste))
+			}
 		}
 	case "kollision":
 		if len(eh.Parameters) >= 2 {
 			a := t.transpileExpression(eh.Parameters[0])
 			b := t.transpileExpression(eh.Parameters[1])
-			out.WriteString(fmt.Sprintf("%s_benlang.wennKollision(%s, %s, async function() {\n", t.indent(), a, b))
+			if isTopLevel {
+				out.WriteString(fmt.Sprintf("%s_benlang.wennKollision(%s, %s, async function() {\n", t.indent(), a, b))
+			} else {
+				// Inside a loop/block, make it work like an if-check
+				out.WriteString(fmt.Sprintf("%sif (_benlang.pruefeKollision(%s, %s)) {\n", t.indent(), a, b))
+			}
 		}
 	}
 
@@ -232,7 +251,11 @@ func (t *Transpiler) transpileEventHandler(eh *parser.EventHandler) string {
 	}
 	t.indentLevel--
 
-	out.WriteString(t.indent() + "});")
+	if isTopLevel {
+		out.WriteString(t.indent() + "});")
+	} else {
+		out.WriteString(t.indent() + "}")
+	}
 	return out.String()
 }
 
