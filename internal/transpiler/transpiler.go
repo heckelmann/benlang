@@ -368,7 +368,7 @@ func (t *Transpiler) transpileCallExpression(ce *parser.CallExpression) string {
 func (t *Transpiler) transpileMemberExpression(me *parser.MemberExpression) string {
 	return fmt.Sprintf("%s.%s",
 		t.transpileExpression(me.Object),
-		me.Property.Value)
+		strings.ToLower(me.Property.Value))
 }
 
 func (t *Transpiler) transpileAssignmentExpression(ae *parser.AssignmentExpression) string {

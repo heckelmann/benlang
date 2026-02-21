@@ -337,6 +337,24 @@ WENN_KOLLISION(spieler, gegner) {
 }
 ```
 
+### GEHE_ZU
+```benlang
+GEHE_ZU(figur, x, y)
+```
+Bewegt eine Figur an eine bestimmte Stelle.
+
+### DREHE
+```benlang
+DREHE(figur, winkel)
+```
+Dreht eine Figur um den angegebenen Winkel (in Grad) weiter.
+
+### SKALIERE
+```benlang
+SKALIERE(figur, faktor)
+```
+Ändert die Größe einer Figur. Ein Faktor von `2` verdoppelt die Größe, `0.5` halbiert sie.
+
 ### SPIELE_TON
 ```benlang
 SPIELE_TON("sound.mp3")

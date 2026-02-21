@@ -250,12 +250,12 @@
         // Always clear and redraw canvas during WENN_START so game content is visible
         this.ctx.fillStyle = '#0d1117';
         this.ctx.fillRect(0, 0, this.breite, this.hoehe);
-        
+
         // If text input is active during WENN_START, we must draw it
         if (this.eingabeAktiv) {
           this.zeichneEingabefeld();
         }
-        
+
         // Keep the loop running
         requestAnimationFrame(() => this.gameLoop());
         return;
@@ -376,8 +376,9 @@
       const figur = {
         x: 0,
         y: 0,
-        breite: 50,
-        hoehe: 50,
+        _breite: 50,
+        _hoehe: 50,
+        _groesseGeaendert: false,
         drehung: 0,
         skalaX: 1,
         skalaY: 1,
@@ -387,26 +388,72 @@
         bild: null
       };
 
+      // Add getters and setters for breite and hoehe to track if the user changed them
+      Object.defineProperty(figur, 'breite', {
+        get: function () { return this._breite; },
+        set: function (v) { this._breite = v; this._groesseGeaendert = true; },
+        configurable: true,
+        enumerable: true
+      });
+      Object.defineProperty(figur, 'hoehe', {
+        get: function () { return this._hoehe; },
+        set: function (v) { this._hoehe = v; this._groesseGeaendert = true; },
+        configurable: true,
+        enumerable: true
+      });
+
       // Load image
       const img = new Image();
       img.onload = () => {
         figur.bild = img;
-        figur.breite = img.width;
-        figur.hoehe = img.height;
+        // Only auto-set size if the user hasn't manually changed it yet
+        if (!figur._groesseGeaendert) {
+          figur._breite = img.width;
+          figur._hoehe = img.height;
+        }
       };
       img.onerror = () => {
         console.warn('Bild konnte nicht geladen werden:', pfad);
         // Create a colored rectangle as fallback
-        figur.bild = this.createFallbackImage(50, 50, '#ff6b6b');
+        figur.bild = this.createFallbackImage(figur.breite, figur.hoehe, '#ff6b6b');
       };
       img.src = '/projekt/' + pfad;
 
       this.figuren.push(figur);
 
-      // Add LOESCHEN method to the figure itself
+      // Add methods to the figure itself
       figur.LOESCHEN = () => this.loescheFigur(figur);
+      figur.GEHE_ZU = (x, y) => { figur.x = x; figur.y = y; };
+      figur.DREHE = (winkel) => { figur.drehung += winkel; };
+      figur.SKALIERE = (faktor) => { figur.skalaX = faktor; figur.skalaY = faktor; };
 
       return figur;
+    },
+
+    /**
+     * Move a figure to a specific position
+     */
+    geheZu: function (figur, x, y) {
+      if (!figur) return;
+      figur.x = x;
+      figur.y = y;
+    },
+
+    /**
+     * Rotate a figure by a certain angle
+     */
+    drehe: function (figur, winkel) {
+      if (!figur) return;
+      figur.drehung = (figur.drehung || 0) + winkel;
+    },
+
+    /**
+     * Scale a figure by a factor
+     */
+    skaliere: function (figur, faktor) {
+      if (!figur) return;
+      figur.skalaX = faktor;
+      figur.skalaY = faktor;
     },
 
     /**
@@ -516,8 +563,10 @@
         const img = new Image();
         img.onload = () => {
           figur.bild = img;
-          figur.breite = img.width;
-          figur.hoehe = img.height;
+          if (!figur._groesseGeaendert) {
+            figur._breite = img.width;
+            figur._hoehe = img.height;
+          }
           resolve();
         };
         img.onerror = () => {

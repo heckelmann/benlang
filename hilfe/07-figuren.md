@@ -138,6 +138,24 @@ WENN_IMMER {
 }
 ```
 
+## Spielfiguren-Funktionen (Abkürzungen)
+
+Anstatt direkt auf die Eigenschaften zuzugreifen, kannst du auch diese praktischen Befehle benutzen:
+
+| Befehl | Beispiel | Was passiert? |
+|--------|----------|---------------|
+| `GEHE_ZU` | `GEHE_ZU(spieler, 400, 300)` | Bewegt die Figur sofort an diese Stelle. |
+| `DREHE` | `DREHE(spieler, 5)` | Dreht die Figur um den angegebenen Wert weiter. |
+| `SKALIERE` | `SKALIERE(spieler, 2)` | Macht die Figur 2-mal so groß (0.5 wäre halb so groß). |
+
+Beispiel für eine einfache Bewegung:
+```benlang
+WENN TASTE_GEDRUECKT("rechts") {
+    GEHE_ZU(spieler, spieler.x + 5, spieler.y)
+    DREHE(spieler, 2)
+}
+```
+
 ## Eigene Bilder erstellen
 
 Du kannst einfache PNG-Bilder mit jedem Zeichenprogramm erstellen:
