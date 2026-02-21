@@ -341,13 +341,22 @@ async function uploadImage(file) {
       method: 'POST',
       body: formData
     });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || 'Server-Fehler');
+    }
+
     const data = await response.json();
 
     if (data.pfad) {
       logToConsole('Bild hochgeladen: ' + data.pfad, 'success');
       return data.pfad;
+    } else if (data.fehler) {
+      logToConsole('Fehler: ' + data.fehler, 'error');
     }
   } catch (err) {
+    logToConsole('Fehler beim Hochladen: ' + err.message, 'error');
     console.error('Fehler beim Hochladen:', err);
   }
   return null;
@@ -603,6 +612,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  document.getElementById('btnShowGallery')?.addEventListener('click', () => {
+    showGallery();
+  });
+  document.getElementById('closeGallery')?.addEventListener('click', () => {
+    document.getElementById('galleryModal')?.classList.remove('show');
+  });
+
   // Handle page unload with unsaved changes
   window.addEventListener('beforeunload', (e) => {
     if (hasUnsavedChanges) {
@@ -613,6 +629,71 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Project management
+async function showGallery() {
+  const modal = document.getElementById('galleryModal');
+  const grid = document.getElementById('galleryGrid');
+  const hint = document.getElementById('galleryEmptyHint');
+
+  if (!modal || !grid) return;
+
+  grid.innerHTML = '';
+  modal.classList.add('show');
+
+  const images = Object.keys(fileModels).filter(name =>
+    name.toLowerCase().endsWith('.png') ||
+    name.toLowerCase().endsWith('.jpg') ||
+    name.toLowerCase().endsWith('.jpeg') ||
+    name.toLowerCase().endsWith('.gif')
+  );
+
+  if (images.length === 0) {
+    if (hint) hint.style.display = 'block';
+    return;
+  }
+
+  if (hint) hint.style.display = 'none';
+
+  images.forEach(imagePath => {
+    const item = document.createElement('div');
+    item.className = 'gallery-item';
+
+    // Clean name for display (remove bilder/ prefix if present)
+    const displayName = imagePath.includes('/') ? imagePath.split('/').pop() : imagePath;
+
+    item.innerHTML = `
+      <div class="img-preview">
+        <img src="/projekt/${imagePath}" alt="${displayName}">
+      </div>
+      <div class="img-info" title="${imagePath}">${displayName}</div>
+    `;
+
+    item.addEventListener('click', () => {
+      insertAtCursor(`LADE_BILD("${imagePath}")`);
+      modal.classList.remove('show');
+      logToConsole('Eingefügt: LADE_BILD("' + imagePath + '")', 'log');
+    });
+
+    grid.appendChild(item);
+  });
+}
+
+function insertAtCursor(text) {
+  if (!monacoEditor) return;
+
+  const selection = monacoEditor.getSelection();
+  const range = new monaco.Range(
+    selection.startLineNumber,
+    selection.startColumn,
+    selection.endLineNumber,
+    selection.endColumn
+  );
+
+  monacoEditor.executeEdits('gallery', [
+    { range: range, text: text, forceMoveMarkers: true }
+  ]);
+  monacoEditor.focus();
+}
+
 async function loadProjectList() {
   try {
     const response = await fetch('/api/projekte/liste');

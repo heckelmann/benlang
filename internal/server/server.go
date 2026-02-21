@@ -48,7 +48,7 @@ func (s *Server) Start() error {
 	mux.HandleFunc("/api/dateien", s.handleDateien)
 	mux.HandleFunc("/api/datei", s.handleDatei)
 	mux.HandleFunc("/api/kompilieren", s.handleKompilieren)
-	mux.HandleFunc("/api/bilder", s.handleBilder)
+	mux.HandleFunc("/api/bild", s.handleBilder)
 	mux.HandleFunc("/api/hilfe", s.handleHilfe)
 	mux.HandleFunc("/api/login", s.handleLogin)
 	mux.HandleFunc("/api/logout", s.handleLogout)

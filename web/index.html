@@ -21,6 +21,7 @@
         <div class="project-selector">
           <span class="project-name" id="projectName">Mein Projekt</span>
           <button class="btn btn-small btn-project" id="btnProjectMenu">Projekt ▾</button>
+          <button class="btn btn-small btn-icon" id="btnShowGallery" title="Bilder-Galerie">🖼️</button>
         </div>
       </div>
       <div class="header-center">
@@ -330,6 +331,24 @@
           <div class="modal-footer">
             <button class="btn btn-primary" id="btnCreateProject">Los geht's!</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Gallery Modal -->
+    <div class="modal" id="galleryModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Projekt-Bilder</h2>
+          <button class="modal-close" id="closeGallery">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="gallery-grid" id="galleryGrid">
+            <!-- Images will be loaded here -->
+          </div>
+          <p id="galleryEmptyHint" class="hint" style="text-align: center; display: none; margin: 40px 0;">
+            Noch keine Bilder hochgeladen.
+          </p>
         </div>
       </div>
     </div>
